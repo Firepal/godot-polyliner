@@ -15,7 +15,7 @@ vec3 line_process(float width, vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 d
 	vertex += perp*width;
 	return vertex;
 }
-uniform float line_width;
+uniform float line_width = 0.02;
 void vertex(){
 	VERTEX = line_process(line_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,COLOR.xyz,UV,
 							NORMAL,TANGENT);

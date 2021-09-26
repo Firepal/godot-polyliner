@@ -8,7 +8,7 @@ func _enter_tree():
 #	p.add_item("yes")
 	add_control_to_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_MENU,l)
 	add_custom_type("Line3D","Path",preload("Line3D.gd"),preload("icon.png"))
-#	make_visible(false)
+	make_visible(false)
 
 func make_visible(visible):
 	if l:

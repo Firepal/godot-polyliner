@@ -1,9 +1,10 @@
-[gd_scene load_steps=24 format=2]
+[gd_scene load_steps=26 format=2]
 
 [ext_resource path="res://addons/godot-line3d/Line3D.gd" type="Script" id=1]
 [ext_resource path="res://addons/godot-line3d/shaders/line_forwireframe.shader" type="Shader" id=2]
 [ext_resource path="res://addons/godot-line3d/shaders/line_pbr.tres" type="Shader" id=3]
 [ext_resource path="res://addons/godot-line3d/shaders/line_neon.shader" type="Shader" id=4]
+[ext_resource path="res://addons/godot-line3d/shaders/line_rope.shader" type="Shader" id=5]
 
 [sub_resource type="Curve3D" id=1]
 bake_interval = 0.04
@@ -31,11 +32,15 @@ shader = ExtResource( 2 )
 shader_param/line_width = 0.03
 
 [sub_resource type="Curve3D" id=32]
-bake_interval = 0.02
+bake_interval = 0.01
 _data = {
 "points": PoolVector3Array( -0.386344, -0.0486782, 0.00534642, 0.386344, 0.0486782, -0.00534642, 0.211183, 1.42201, -0.503293, 0.0351837, 0.431591, -0.0964723, -0.0351837, -0.431591, 0.0964723, 0.570277, 1.0871, -0.364702, 0, 0, 0, 0, 0, 0, 0.879079, 0.725917, -0.206062 ),
 "tilts": PoolRealArray( 0, 0, 0 )
 }
+
+[sub_resource type="ShaderMaterial" id=77]
+shader = ExtResource( 5 )
+shader_param/line_width = 0.02
 
 [sub_resource type="Curve3D" id=6]
 bake_interval = 0.09
@@ -136,11 +141,11 @@ size = Vector2( 12, 4 )
 [node name="Spatial" type="Spatial"]
 
 [node name="2" type="OmniLight" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.158406, 1.31717, 3.83469 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.41279, 1.31717, 4.80158 )
 light_color = Color( 1, 0.94, 1, 1 )
 shadow_enabled = true
-shadow_bias = 0.0
-omni_range = 144.439
+shadow_bias = 0.031
+omni_range = 664.512
 omni_attenuation = 2.0
 omni_shadow_mode = 0
 
@@ -150,17 +155,19 @@ curve = SubResource( 1 )
 script = ExtResource( 1 )
 material = SubResource( 69 )
 
-[node name="rope" type="Path" parent="."]
+[node name="wireframe" type="Path" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.575885, 0.0483176, 3.22674 )
 curve = SubResource( 4 )
 script = ExtResource( 1 )
 renderer = 1
+render_mode = 1
 material = SubResource( 70 )
 
-[node name="Path3" type="Path" parent="."]
+[node name="rope" type="Path" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.519959, 0.00820928, 0.0296076 )
 curve = SubResource( 32 )
 script = ExtResource( 1 )
+material = SubResource( 77 )
 
 [node name="Spatial" type="Spatial" parent="."]
 transform = Transform( -2.18557e-08, 0, -0.5, 0, 0.5, 0, 0.5, 0, -2.18557e-08, 1.39, 0.857196, 4.73432 )
