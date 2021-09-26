@@ -1,0 +1,237 @@
+[gd_scene load_steps=24 format=2]
+
+[ext_resource path="res://addons/godot-line3d/Line3D.gd" type="Script" id=1]
+[ext_resource path="res://addons/godot-line3d/shaders/line_forwireframe.shader" type="Shader" id=2]
+[ext_resource path="res://addons/godot-line3d/shaders/line_pbr.tres" type="Shader" id=3]
+[ext_resource path="res://addons/godot-line3d/shaders/line_neon.shader" type="Shader" id=4]
+
+[sub_resource type="Curve3D" id=1]
+bake_interval = 0.04
+_data = {
+"points": PoolVector3Array( -0.681473, 0.501452, 0.0499668, -0.0453298, -0.808289, -0.422336, -0.287503, 1.98422, 3.27149, -0.0263753, -0.319308, 0.277562, 0.277016, -0.123375, -0.419512, -0.702265, 1.97101, 1.42616, -0.257928, -0.0196507, 0.294571, 0.226188, -0.12472, -0.279578, -0.185635, 1.97374, 0.449912, -0.531992, -0.349256, 0.463661, 0.0665179, -0.00291073, -0.00991285, 0.714851, 1.95456, -0.550942, -0.198474, 0.251646, -0.194772, 0.198474, -0.251646, 0.194772, 1.46351, 0.637327, -0.28163, -0.729187, 0.00364846, 0.477284, 0.729187, -0.00364846, -0.477284, 2.57821, 0.0131593, -0.467707, 0.103514, 0.00713903, 0.910235, -0.103514, -0.00713903, -0.910235, 2.84868, 0.0247024, -2.11609 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0 )
+}
+
+[sub_resource type="ShaderMaterial" id=69]
+shader = ExtResource( 3 )
+shader_param/line_width = 0.028
+shader_param/albedo_color = Color( 0.12549, 0.12549, 0.12549, 1 )
+shader_param/metallic = 0.0
+shader_param/roughness = 0.343
+
+[sub_resource type="Curve3D" id=4]
+bake_interval = 0.07
+_data = {
+"points": PoolVector3Array( -0.197784, 0.771237, 0.439373, 0.197784, -0.771237, -0.439373, -0.805822, 1.25129, 0.573306, -0.331454, -0.531493, -0.128015, 0.331454, 0.531493, 0.128015, 0.925916, 1.44922, -0.386898 ),
+"tilts": PoolRealArray( 0, 0 )
+}
+
+[sub_resource type="ShaderMaterial" id=70]
+shader = ExtResource( 2 )
+shader_param/line_width = 0.03
+
+[sub_resource type="Curve3D" id=32]
+bake_interval = 0.02
+_data = {
+"points": PoolVector3Array( -0.386344, -0.0486782, 0.00534642, 0.386344, 0.0486782, -0.00534642, 0.211183, 1.42201, -0.503293, 0.0351837, 0.431591, -0.0964723, -0.0351837, -0.431591, 0.0964723, 0.570277, 1.0871, -0.364702, 0, 0, 0, 0, 0, 0, 0.879079, 0.725917, -0.206062 ),
+"tilts": PoolRealArray( 0, 0, 0 )
+}
+
+[sub_resource type="Curve3D" id=6]
+bake_interval = 0.09
+_data = {
+"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, 0.0133251, 0.052581, -0.315982, -0.000402212, -0.0114647, 0.125075, 0.000402212, 0.0114647, -0.125075, -0.0649302, 0.0867756, -0.676741, 0.0406693, -0.314836, 0.00211489, -0.0406693, 0.314836, -0.00211489, -0.0292743, 0.402122, -0.924479, 0, 0, 0, 0, 0, 0, 0.253769, 1.67101, -0.867928 ),
+"tilts": PoolRealArray( 0, 0, 0, 0 )
+}
+
+[sub_resource type="ShaderMaterial" id=71]
+shader = ExtResource( 4 )
+shader_param/line_width = 0.022
+shader_param/edge_pos = 0.956
+shader_param/edge_softness = 0.014
+shader_param/edge_diminish = 0.349
+
+[sub_resource type="Curve3D" id=8]
+bake_interval = 0.23
+_data = {
+"points": PoolVector3Array( 0.0188306, 0.573898, -0.946725, 0, 0, 0, -0.0320193, 0.0871031, -0.953465, 0, 0, 0, 0, 0, 0, 0.252816, 1.61824, -0.898806 ),
+"tilts": PoolRealArray( 0, 0 )
+}
+
+[sub_resource type="Curve3D" id=10]
+bake_interval = 0.02
+_data = {
+"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, -0.0320193, 0.0871031, -0.953465, 0.0287427, 0.147746, -0.154159, -0.0287427, -0.147746, 0.154159, 0.253769, 1.67101, -0.867928, 0.149462, 0.490598, -0.0296789, -0.149462, -0.490598, 0.0296789, 0.0705009, 0.543522, -0.505148, -0.0499868, -0.522727, -0.0048691, 0.0499868, 0.522727, 0.0048691, -0.00451469, 0.498086, -0.147836, 0, 0, 0, 0, 0, 0, 0.265312, 1.69012, -0.114367 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0 )
+}
+
+[sub_resource type="Curve3D" id=12]
+bake_interval = 0.02
+_data = {
+"points": PoolVector3Array( 0.0176462, -0.073627, -0.07069, -0.0176462, 0.073627, 0.07069, 0.253769, 1.67101, -0.867928, -0.01461, 0.0929933, -0.0135185, 0.01461, -0.0929933, 0.0135185, 0.286338, 1.59172, -0.0273314, -0.0135941, 0.0593202, 0.0485303, 0.0135941, -0.0593202, -0.0485303, 0.116213, 1.51794, -0.782843, -0.00480502, 0.0413738, -0.0287494, 0.00480502, -0.0413738, 0.0287494, 0.112959, 1.13225, -0.854356, -0.00272521, 0.0478554, 0.00204782, 0.00272521, -0.0478554, -0.00204782, 0.188027, 1.12903, -0.189822, 0.0268822, 0.171594, 0.00298178, -0.0268822, -0.171594, -0.00298178, 0.0865254, 0.881009, -0.823246, -0.0100646, 0.208581, 0.0197082, 0.0100646, -0.208581, -0.0197082, -0.0294416, 0.317601, -0.856148, -0.0878368, 0.129924, -0.0854087, 0.0878368, -0.129924, 0.0854087, 0.0404086, -0.00266546, -0.0718503, 0.00638366, -0.00244647, 0.136213, -0.00638366, 0.00244647, -0.136213, -0.00573421, 0.0114359, -0.767331, -0.00999196, -0.141455, -0.012406, 0.00999196, 0.141455, 0.012406, -0.00607419, 0.194976, -0.960631, 0.0176462, -0.073627, -0.07069, -0.0176462, 0.073627, 0.07069, 0.253769, 1.67101, -0.867928 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 )
+}
+
+[sub_resource type="Curve3D" id=14]
+bake_interval = 0.04
+_data = {
+"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, 0.00725126, 1.19698, 0.00167429, 0.000700951, 0.173404, 0.00882459, -0.000700951, -0.173404, -0.00882459, 0.0211658, 0.821217, 0.311295, -0.00398445, 0.0413077, -0.00030303, 0.00398445, -0.0413077, 0.00030303, 0.00453615, 0.568758, -0.118173, 0.0099864, 0.132196, -0.00262773, -0.0099864, -0.132196, 0.00262773, -0.00528383, 0.285946, 0.27282, 0, 0, 0, 0, 0, 0, -0.00420463, -0.0685405, -0.0932269 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0 )
+}
+
+[sub_resource type="Curve3D" id=16]
+bake_interval = 0.02
+_data = {
+"points": PoolVector3Array( -0.00588179, -0.0163611, 0.166676, 0.00588179, 0.0163611, -0.166676, 0.111722, 0.0532196, -0.272097, -0.052846, -0.227517, -0.0213231, 0.052846, 0.227517, 0.0213231, 0.143549, 0.39558, -0.336998, -0.0788579, -0.33897, -0.0257099, 0.0788579, 0.33897, 0.0257099, 0.245285, 1.13839, -0.24489, -0.031877, 0.583704, -0.00689557, 0.031877, -0.583704, 0.00689557, 0.127718, 0.625811, 0.533192, -0.00588179, -0.0163611, 0.166676, 0.00588179, 0.0163611, -0.166676, 0.111722, 0.0532196, -0.272097 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0 )
+}
+
+[sub_resource type="PlaneMesh" id=50]
+size = Vector2( 10, 10 )
+
+[sub_resource type="Environment" id=51]
+dof_blur_far_distance = 2.75
+dof_blur_far_amount = 0.2
+dof_blur_far_quality = 2
+glow_enabled = true
+glow_levels/6 = true
+glow_intensity = 0.1
+glow_strength = 1.06
+glow_blend_mode = 0
+glow_hdr_threshold = 0.76
+
+[sub_resource type="Shader" id=72]
+code = "shader_type spatial;
+render_mode blend_mix;
+render_mode cull_disabled;
+
+varying float lifetime;
+varying float alpf;
+void vertex(){
+	lifetime = INSTANCE_CUSTOM.y*0.01;
+	alpf = sin(INSTANCE_CUSTOM.y*3.1415)*0.05;
+}
+uniform sampler2D noise_tex;
+void fragment(){
+	TRANSMISSION = vec3(1.0);
+	ALBEDO = texture(noise_tex,UV+lifetime).rgb;
+	ALPHA = alpf;
+}"
+
+[sub_resource type="OpenSimplexNoise" id=75]
+octaves = 5
+
+[sub_resource type="NoiseTexture" id=76]
+seamless = true
+noise = SubResource( 75 )
+
+[sub_resource type="ShaderMaterial" id=73]
+shader = SubResource( 72 )
+shader_param/noise_tex = SubResource( 76 )
+
+[sub_resource type="QuadMesh" id=74]
+material = SubResource( 73 )
+size = Vector2( 12, 4 )
+
+[node name="Spatial" type="Spatial"]
+
+[node name="2" type="OmniLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.158406, 1.31717, 3.83469 )
+light_color = Color( 1, 0.94, 1, 1 )
+shadow_enabled = true
+shadow_bias = 0.0
+omni_range = 144.439
+omni_attenuation = 2.0
+omni_shadow_mode = 0
+
+[node name="wire" type="Path" parent="."]
+transform = Transform( -0.513182, 0, 0.85828, 0, 1, 0, -0.85828, 0, -0.513182, 1.01146, -0.000974536, 3.21569 )
+curve = SubResource( 1 )
+script = ExtResource( 1 )
+material = SubResource( 69 )
+
+[node name="rope" type="Path" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.575885, 0.0483176, 3.22674 )
+curve = SubResource( 4 )
+script = ExtResource( 1 )
+renderer = 1
+material = SubResource( 70 )
+
+[node name="Path3" type="Path" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.519959, 0.00820928, 0.0296076 )
+curve = SubResource( 32 )
+script = ExtResource( 1 )
+
+[node name="Spatial" type="Spatial" parent="."]
+transform = Transform( -2.18557e-08, 0, -0.5, 0, 0.5, 0, 0.5, 0, -2.18557e-08, 1.39, 0.857196, 4.73432 )
+
+[node name="Path3" type="Path" parent="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0142488, 0.272145, -0.678472 )
+curve = SubResource( 6 )
+script = ExtResource( 1 )
+material = SubResource( 71 )
+
+[node name="Path4" type="Path" parent="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0111256, 0.274852, 0.128072 )
+curve = SubResource( 8 )
+script = ExtResource( 1 )
+material = SubResource( 71 )
+
+[node name="Path5" type="Path" parent="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0111258, 0.274852, 0.624882 )
+curve = SubResource( 10 )
+script = ExtResource( 1 )
+material = SubResource( 71 )
+
+[node name="Path6" type="Path" parent="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0111258, 0.274852, 1.86555 )
+curve = SubResource( 12 )
+script = ExtResource( 1 )
+material = SubResource( 71 )
+
+[node name="Path7" type="Path" parent="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00908566, -1.25051, -0.907288 )
+curve = SubResource( 14 )
+script = ExtResource( 1 )
+material = SubResource( 71 )
+
+[node name="Path8" type="Path" parent="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00908577, -1.25051, 0.182292 )
+curve = SubResource( 16 )
+script = ExtResource( 1 )
+material = SubResource( 71 )
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+mesh = SubResource( 50 )
+material/0 = null
+
+[node name="MeshInstance2" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 2, 0 )
+mesh = SubResource( 50 )
+material/0 = null
+
+[node name="MeshInstance4" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1.31134e-07, 1, 0, -1, 1.31134e-07, 0, 2, 4.95934 )
+mesh = SubResource( 50 )
+material/0 = null
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 51 )
+
+[node name="MeshInstance3" type="MeshInstance" parent="."]
+
+[node name="CPUParticles" type="CPUParticles" parent="."]
+transform = Transform( -1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 1.14351, 1.42591, 1.30462 )
+visible = false
+cast_shadow = 0
+amount = 64
+lifetime = 4.0
+mesh = SubResource( 74 )
+emission_shape = 2
+emission_box_extents = Vector3( 0.1, 0.1, 3 )
+spread = 180.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 0.1
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( -0.932721, 0, 0.360599, 0, 1, 0, -0.360599, 0, -0.932721, 0.808431, 0.807191, -0.232107 )

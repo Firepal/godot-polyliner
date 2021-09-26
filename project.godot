@@ -1,0 +1,51 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "Reference",
+"class": "ImmediateSurface",
+"language": "GDScript",
+"path": "res://addons/godot-line3d/ImmediateSurface.gd"
+} ]
+_global_script_class_icons={
+"ImmediateSurface": ""
+}
+
+[application]
+
+config/name="Line3D"
+run/main_scene="res://Spatial.tscn"
+config/icon="res://icon.png"
+
+[editor_plugins]
+
+enabled=PoolStringArray( "res://addons/godot-line3d/plugin.cfg" )
+
+[physics]
+
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+quality/driver/driver_name="GLES2"
+vram_compression/import_etc=true
+vram_compression/import_etc2=false
+quality/shadow_atlas/quadrant_1_subdiv=1
+quality/shadow_atlas/quadrant_2_subdiv=1
+quality/shadow_atlas/quadrant_3_subdiv=1
+quality/shadows/filter_mode=2
+quality/shadows/filter_mode.mobile=2
+quality/reflections/texture_array_reflections=false
+quality/reflections/high_quality_ggx=false
+quality/shading/force_vertex_shading.mobile=false
+quality/shading/force_lambert_over_burley.mobile=false
+quality/shading/force_blinn_over_ggx.mobile=false
+quality/filters/msaa=2
+environment/default_environment="res://default_env.tres"
