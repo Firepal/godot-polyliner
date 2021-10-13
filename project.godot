@@ -12,10 +12,16 @@ _global_script_classes=[ {
 "base": "Reference",
 "class": "ImmediateSurface",
 "language": "GDScript",
-"path": "res://addons/godot-line3d/ImmediateSurface.gd"
+"path": "res://addons/godot-line3d/LineGen3D/ImmediateSurface.gd"
+}, {
+"base": "Resource",
+"class": "LineGen3D",
+"language": "GDScript",
+"path": "res://addons/godot-line3d/LineGen3D/LineGen3D.gd"
 } ]
 _global_script_class_icons={
-"ImmediateSurface": ""
+"ImmediateSurface": "",
+"LineGen3D": ""
 }
 
 [application]

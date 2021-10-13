@@ -16,7 +16,7 @@ vec3 line_process(float width, vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 d
 	
 	if (uv.y < 0.5)	perp *= -1.0;
 	vertex += perp*width;
-	return vertex-dir_to_cam;
+	return vertex;
 }
 void vertex(){
 	VERTEX = line_process(line_width+glow_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,COLOR.xyz,UV,
@@ -30,5 +30,5 @@ void fragment(){
 	
 	float center = smoothstep(lw,lw*0.5,line);
 	float glow = pow(1.0-line,2.0)*0.5;
-	ALBEDO = vec3(center+glow);
+	ALBEDO = vec3( (center+glow)*UV.x );
 }

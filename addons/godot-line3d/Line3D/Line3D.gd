@@ -3,6 +3,7 @@ extends Path
 
 enum Renderer {
 	STATIC, # Use SurfaceTool for rendering
+	######################  IMMEDIATE IS UNIMPLEMENTED IN LineGen3D
 	IMMEDIATE # Use ImmediateGeoemtry
 }
 
@@ -28,6 +29,8 @@ export(Material) var material setget set_material
 
 var _internal_render_mode = Mesh.PRIMITIVE_TRIANGLES
 
+var _linegen = LineGen3D.new()
+
 func set_renderer(value):
 	renderer = value
 	
@@ -50,9 +53,9 @@ func _show_mesh_instance():
 func set_render_mode(value):
 	render_mode = value
 	if value == RenderMode.TRIANGLES:
-		_internal_render_mode = Mesh.PRIMITIVE_TRIANGLES
+		_linegen.render_mode = Mesh.PRIMITIVE_TRIANGLES
 	else:
-		_internal_render_mode = Mesh.PRIMITIVE_LINE_STRIP
+		_linegen.render_mode = Mesh.PRIMITIVE_LINE_STRIP
 	redraw()
 
 func set_uv_mode(value):
@@ -88,72 +91,22 @@ func _enter_tree():
 	_imm_geo = _imm_sf.get_immediate_geometry()
 	add_child(_imm_geo)
 	
+	set_render_mode(render_mode)
+	set_uv_mode(uv_mode)
+	set_uv_size(uv_size)
 	redraw()
 
-var _sf = SurfaceTool.new()
 func _draw():
-	var p = curve.get_baked_points()
-	var uvs = uv_size
-	if uv_mode == UVMode.REPEAT: uvs *= curve.get_baked_length()
+	var points = curve.get_baked_points()
+	var length = uv_size
 	
-	var geo
-	var renderer_is_static = renderer == Renderer.STATIC or Engine.editor_hint
-	if renderer_is_static: 
-		geo = _sf
-	else: 
-		geo = _imm_sf
-		geo.clear()
+	if uv_mode == UVMode.REPEAT: length *= curve.get_baked_length()
 	
-	geo.begin(_internal_render_mode)
-	
-	var last = null
-	var ps = p.size()-1
-	for i in range(ps):
-		var p1 = p[i]
-		var p2 = p[i+1]
-		
-		var p1pc = p1.direction_to(p2)
-		var p2pc = p1pc
-		if last != null: p1pc = last
-		
-		var p1c = Color(p1pc.x,p1pc.y,p1pc.z)
-		var p2c = Color(p2pc.x,p2pc.y,p2pc.z)
-		
-		var uv1 = (float(ps-i)/ps)*uvs
-		var uv2 = (float(ps-(i+1))/ps)*uvs
-		
-		
-		geo.add_color( p1c )
-		geo.add_uv( Vector2(uv1,0.0) )
-		geo.add_vertex( p1 )
-		
-		geo.add_color( p2c )
-		geo.add_uv( Vector2(uv2,0.0) )
-		geo.add_vertex( p2 )
-		geo.add_uv( Vector2(uv2,1.0) )
-		geo.add_vertex( p2 )
-		
-		
-		geo.add_color( p1c )
-		geo.add_uv( Vector2(uv1,1.0) )
-		geo.add_vertex( p1 )
-		geo.add_uv( Vector2(uv1,0.0) )
-		geo.add_vertex( p1 )
-		
-		geo.add_color( p2c )
-		geo.add_uv( Vector2(uv2,1.0) )
-		geo.add_vertex( p2 )
-		last = p2pc
-	
+	_mesh_instance.mesh = _linegen.draw_from_points(points,length)
 	_update_material()
-	if renderer_is_static:
-		_mesh_instance.mesh = geo.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT-Mesh.ARRAY_COMPRESS_COLOR)
-	else:
-		geo.end()
 
 func redraw():
 	call_deferred("_draw")
-
 
 func _ready():
 	if not is_connected("curve_changed",self,"redraw"):
