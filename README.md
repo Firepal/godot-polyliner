@@ -35,5 +35,4 @@ You can modify one of the provided shaders, but remember to copy it to a fresh-n
 
 # To-Do
 - Custom curve system with orientable points 
-- Create Trail3D which extends from Line3D
 - SpatialMaterial shader injection?
