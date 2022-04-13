@@ -1,3 +1,9 @@
 # Line3D
+Generates a customizable line mesh from the `Vector3` points you provide it using [LineGen3D](../LineGen3D/README.md).
 
-Takes advantage of the Godot `Path` node to allow for drawing a line using `Path`'s Editor toolset.
+Analogous to [Line2D](https://docs.godotengine.org/en/stable/classes/class_line2d.html), but in 3D.
+
+# LinePath3D
+An extension of the `Path` node that allows you to define a line using `Path`'s Editor Bezier curve tools.
+
+Bypasses the `Line3D` node, but this will soon use it.

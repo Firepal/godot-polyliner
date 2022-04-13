@@ -1,17 +1,37 @@
 tool
 extends Spatial
 
-# TODO: this
-enum ProcessMode {
+enum SamplingMode {
 	Idle,
-	Physics
+	Physics,
+	None
 }
 
+enum TangentAxis {
+	X,
+	Y,
+	Z
+}
 
 var _linegen = LineGen3D.new()
 var _mesh_instance = MeshInstance.new()
 
+var points = []
+
+export(SamplingMode) var sampling_mode = SamplingMode.Idle setget set_sampling_mode
+export(int,0,1000) var max_points = 10 setget set_max_points
+export(float,0.0,1.0) var damping = 0.0
+export(TangentAxis) var tangent_axis = TangentAxis.X
+export(int,0,20) var skip_frame = 0
+export(bool) var interpolate_skip = false setget set_interpolate_skip
+
+export(ShaderMaterial) var material setget _set_material
+
 func _ready():
+	_mesh_instance.set_as_toplevel(true)
+	set_sampling_mode(sampling_mode)
+	set_max_points(max_points)
+	_set_material(material)
 	_linegen.render_mode = Mesh.PRIMITIVE_TRIANGLES
 
 func _enter_tree():
@@ -20,44 +40,93 @@ func _enter_tree():
 func _exit_tree():
 	remove_child(_mesh_instance)
 
-var points = []
-export(int,0,1000) var max_points = 10
-export(int,0,8) var extra_points = 0
-export(float,0.0,1.0) var damping = 0.0
-export var render_as_line = false
-export(Material) var material setget set_material
-
-var damped_transform = global_transform
-var last = null
-
-func _interpolate_sample(current : Transform):
-	if last != null and extra_points != 0.0:
-			var ep = extra_points
-			var rcp = 1.0/(ep+1)
-			for i in range(extra_points):
-				var interp_factor = float(ep-i)*rcp
-	#			var t = current
-	#			t.origin = current.origin.linear_interpolate(last.origin,interp_factor)
-				var t = current.interpolate_with(last,interp_factor)
-				points.push_front(t)
-	
-	last = current
-
-func _process(delta):
-	_mesh_instance.global_transform = Transform()
-	
-	if is_zero_approx(damping): damped_transform = global_transform
-	else: damped_transform = global_transform.interpolate_with(damped_transform,damping)
-	
-	_interpolate_sample(damped_transform)
-	points.push_front(damped_transform)
-	points.resize(max_points*(extra_points+1)+1)
-	
-	if render_as_line:
-		_mesh_instance.mesh = _linegen.draw_from_xform_points(points)
-	else:
-		_mesh_instance.mesh = _linegen.draw_from_xforms(points)
-
-func set_material(mat):
+func _set_material(mat):
 	material = mat
 	_mesh_instance.material_override = mat
+
+func set_sampling_mode(mode):
+	sampling_mode = mode
+	set_physics_process(mode == SamplingMode.Physics)
+
+func set_interpolate_skip(val):
+	interpolate_skip = val
+	if interpolate_skip:
+		_mesh_instance.transform = Transform.IDENTITY
+
+func set_max_points(val):
+	val = max(val,2)
+	var diff = val - max_points
+	var old_size = max_points
+	max_points = val
+	
+	if diff == 0: return
+	points.resize(val)
+	print(diff)
+	if diff > 0:
+		refill_points(old_size-1)
+
+func refill_points(fill_index : int = 0):
+	for i in range(fill_index,points.size()):
+		points[i] = points[fill_index]
+
+var damped_transform = global_transform
+
+func _shift_points_forward():
+	var s = points.size()-1
+	for i in range(s):
+		points[s-i] = points[s-(i+1)]
+
+func push_xform(xform = null):
+	_shift_points_forward()
+	if xform == null:
+		points[0] = null
+		return
+	if is_zero_approx(damping): damped_transform = xform
+	else: damped_transform = xform.interpolate_with(damped_transform,damping)
+	points[0] = damped_transform
+
+func _redraw():
+	if visible:
+		_mesh_instance.mesh = _linegen.draw_from_xforms_strip(points,global_transform.inverse(),tangent_axis)
+
+var _mesh_xform : Transform = Transform.IDENTITY
+func _process(delta):
+	
+	if fmod(Engine.get_idle_frames(),max(skip_frame+1,1)) < 0.001:
+		_mesh_xform = global_transform
+		if sampling_mode == SamplingMode.Idle:
+			push_xform(global_transform)
+		elif sampling_mode == SamplingMode.None:
+			push_xform(null)
+		
+		_redraw()
+	
+	if not interpolate_skip:
+		_mesh_instance.global_transform = _mesh_xform
+	
+#		_debug_spheres()
+
+func _physics_process(delta):
+	if fmod(Engine.get_physics_frames(), max(skip_frame+1,1)) < 0.001:
+		push_xform(global_transform)
+
+# For testing correspondance between
+# trail mesh and points
+func _debug_spheres():
+	var s = Spatial.new()
+	if _mesh_instance.get_children().empty():
+		_mesh_instance.add_child(s)
+	else:
+		s = _mesh_instance.get_child(0)
+		for i in s.get_children():
+			i.queue_free()
+		var sphere = MeshInstance.new()
+		var smesh = SphereMesh.new()
+		smesh.radius = 0.01
+		smesh.height = 0.02
+		sphere.mesh = smesh
+		for i in points:
+			if i != null:
+				var sphere_inst = sphere.duplicate()
+				sphere_inst.transform = i
+				s.add_child(sphere_inst)

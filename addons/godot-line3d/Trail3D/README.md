@@ -1,6 +1,6 @@
 # Trail3D
 
-Samples and stores its own global transform (position, rotation) over time, then renders it as a trailling line.
+Samples and stores its own global transform (position, rotation) over time, then renders that as a line mesh.
 
 Properties:
 - Max Points : `int` = 10

@@ -1,34 +1,75 @@
 shader_type spatial;
 render_mode specular_schlick_ggx;
+//render_mode unshaded;
 
-vec3 line_process(float width, vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 dir_to_next_vertex, vec2 uv,
-					out vec3 normal, out vec3 tangent){
-	vec3 wv = (world_mat*vec4(vertex,1.0)).xyz;
-	vec3 dir_to_cam = wv-cam_pos;
-	dir_to_cam *= mat3(world_mat);
-	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_vertex));
+uniform float line_width = 0.03;
+uniform bool z_facing = false;
+uniform bool rounded = false;
+float line_process(float width, inout vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 dir_to_next_vertex, vec2 uv,
+					inout vec3 normal, out vec3 tangent){
+	vec3 dir_to_cam = ((world_mat*vec4(vertex,1.0)).xyz - cam_pos)*mat3(world_mat);
+	vec3 perp = cross(dir_to_cam,dir_to_next_vertex);
+	if (z_facing)	perp = normal;
+	
+	float is_end = float(abs(uv.x-0.5) > 0.4999);
+	float endsign = -sign(uv.x-0.5);
+	vec3 rounder = (is_end*endsign) * normalize(-cross(perp,dir_to_cam));
+	if (!rounded || z_facing)	rounder = vec3(0.0);
+
+	float side = sign(float(uv.y > 0.5)-0.5);
+	perp = normalize(perp);
+	perp = ((perp*side)-rounder);
+	vertex += perp * width;
 	
 	tangent = perp;
 	normal = cross(perp,dir_to_next_vertex);
-	
-	if (uv.y < 0.5)	perp *= -1.0;
-	vertex += perp*width;
-	return vertex;
-}
-uniform float line_width = 0.02;
-void vertex(){
-	VERTEX = line_process(line_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,COLOR.xyz,UV,
-							NORMAL,TANGENT);
-	vec2 mull = vec2(10.0,line_width*10.0);
-	UV2 = UV*mull;
+	return is_end*endsign;
 }
 
-void fragment(){
-	float line = sin(dot(UV2,vec2(14.0)));
-	line = smoothstep(1.0,-0.5,(line));
-	line = pow(line,0.2);
+varying float is_end;
+void vertex(){
+	is_end = line_process(line_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,NORMAL,UV2,
+							NORMAL,TANGENT);
+	BINORMAL = ( cross(NORMAL,TANGENT) );
 	
-	ALBEDO = vec3(0.2,0.5,0.3)*line;
-	NORMALMAP.x = UV.y;
+	if (rounded && !z_facing) {
+		UV.x += is_end*line_width;
+		UV2.x += is_end*line_width;
+	}
+}
+
+float getDistToLineCenter(vec2 uv) {
+	vec2 c = vec2(is_end*0.5,uv.y-0.5);
+	return length(c);
+}
+
+float getDistSquaredToLineCenter(vec2 uv) {
+	vec2 c = vec2(is_end*0.5,uv.y-0.5);
+	return dot(c,c);
+}
+
+vec2 getLineTubeNormal(vec2 uv) {
+	vec2 n = vec2(0.5);
+		n.x = uv.y;
+		if (rounded) {
+			n.y = is_end*0.5+0.5;
+		}
+	return n;
+}
+
+uniform float test = 0.4;
+void fragment(){
+	if (rounded && !z_facing && getDistSquaredToLineCenter(UV2) > 0.26) { discard; }
+	
+	vec2 u = UV2;
+	
+	u.x *= test*10.0;
+	const float eps = 0.0001;
+	const vec2 ofs = vec2(0.03,0.0);
+	float lc = sin(dot(u,vec2(14.0)));
+	lc = (lc*0.5)+0.5;
+	
+	ALBEDO = vec3( 1.0,1.0,0.8 )*lc;
 	ROUGHNESS = 0.7;
+	if (!z_facing) { NORMALMAP.xy = getLineTubeNormal(UV); }
 }

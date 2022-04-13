@@ -1,0 +1,35 @@
+[remap]
+
+importer="texture"
+type="StreamTexture"
+path="res://.import/interior_atlas.png-eec32bfc367bbb464381ce7ebba03b43.stex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://ropetesting/interior_atlas.png"
+dest_files=[ "res://.import/interior_atlas.png-eec32bfc367bbb464381ce7ebba03b43.stex" ]
+
+[params]
+
+compress/mode=1
+compress/lossy_quality=0.87
+compress/hdr_mode=0
+compress/bptc_ldr=0
+compress/normal_map=2
+flags/repeat=true
+flags/filter=true
+flags/mipmaps=true
+flags/anisotropic=false
+flags/srgb=2
+process/fix_alpha_border=false
+process/premult_alpha=false
+process/HDR_as_SRGB=false
+process/invert_color=false
+process/normal_map_invert_y=false
+stream=false
+size_limit=0
+detect_3d=false
+svg/scale=1.0

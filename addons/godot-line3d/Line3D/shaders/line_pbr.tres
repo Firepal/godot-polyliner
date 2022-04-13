@@ -2,25 +2,41 @@
 
 [resource]
 code = "shader_type spatial;
+render_mode depth_draw_alpha_prepass;
+//render_mode unshaded;
 
-vec3 line_process(float width, vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 dir_to_next_vertex, vec2 uv,
-					out vec3 normal, out vec3 tangent){
-	vec3 wv = (world_mat*vec4(vertex,1.0)).xyz;
-	vec3 dir_to_cam = wv-cam_pos;
+float line_process(float width, inout vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 dir_to_next_vertex, vec2 uv,
+					out vec3 normal, out vec3 tangent, out float endsign){
+	vec3 dir_to_cam = (world_mat*vec4(vertex,1.0)).xyz - cam_pos;
 	dir_to_cam *= mat3(world_mat);
-	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_vertex));
+	vec3 perp = cross(dir_to_cam,dir_to_next_vertex);
+	
+	float is_end = 0.0;
+	is_end = float(abs(uv.x-0.5) > 0.4999);
+	
+	vec3 rounder = vec3(0.0);
+	endsign = sign(float(uv.x < 0.5)-0.5);
+	rounder = (is_end*endsign)*normalize(-cross(perp,dir_to_cam));
 	
 	tangent = perp;
-	normal = cross(perp,dir_to_next_vertex);
+	normal = cross(tangent,dir_to_next_vertex);
+	perp = normalize(perp);
 	
-	if (uv.y < 0.5)	perp *= -1.0;
+	float side = (float(uv.y > 0.5)*2.0)-1.0;
+	perp = (perp*side)-rounder;
+	
 	vertex += perp*width;
-	return vertex;
+	return is_end;
 }
 uniform float line_width = 0.01;
+varying float is_end;
+varying float end_sign;
 void vertex(){
-	VERTEX = line_process(line_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,COLOR.xyz,UV,
-							NORMAL,TANGENT);
+	float yes = 0.0;
+	is_end = line_process(line_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,NORMAL,UV2,
+							NORMAL,TANGENT,yes);
+	BINORMAL = normalize(cross(NORMAL,TANGENT));
+	end_sign = (((is_end*yes)*0.5)+0.5);
 }
 
 uniform vec4 albedo_color : hint_color = vec4(vec3(0.8),1.0);
@@ -28,10 +44,15 @@ uniform float metallic : hint_range(0.0,1.0) = 0.0;
 uniform float roughness : hint_range(0.0,1.0) = 0.5;
 
 void fragment(){
-	ALBEDO = albedo_color.rgb;
+	// Cylindrical normal
+	NORMALMAP.x = UV.y;
+	NORMALMAP.y = end_sign;
+	
+//	ALBEDO = vec3(end_sign);
+	ALPHA = 1.0-length(vec2(is_end*0.5,UV.y-0.5));
+	ALPHA_SCISSOR = step(0.01,is_end)*0.5;
+	
 	METALLIC = metallic;
 	ROUGHNESS = roughness;
 	
-	// Cylindrical normal
-	NORMALMAP.x = UV.y;
 }"

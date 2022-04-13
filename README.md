@@ -2,37 +2,30 @@
 <img src="icon.png"></img><br>
 ***This plugin is currently being developed in Godot 3.4 and is not guaranteed to function in 3.3***    
 
-Adds new Line3D node that allows you to use the Path node to generate lines that face the camera.
+Adds 3D GPU-based thick line rendering capabilities.
 
 [How it Works!](HOW.md)
 
 # Usage Instructions
 
-1.  Create a Line3D node (as a child of another node, for example)
+1.  Create a LinePath3D node
 
 2.  Setup the curve like you would with the Godot `Path` node. 
 <details>
 
-Select the `Line3D`, click the yellow-y "Add Points" icon at the top of the viewport and click around to create points.
+Select the `LinePath3D`, click the yellow-y "Add Points" icon at the top of the viewport and click around to create points.
 
 To add handles to a point, click the greyish "Select Points" icon at the top of the viewport, hold Shift and click-and-drag on a point to add curve handles to it.
 
-</details>
+</details><br>
 
-3.  Set the Line3D's `Material` property with a new ShaderMaterial
+3. ???
 
-4. Drag-and-drop any of the shaders in `addons/godot-line3d/shaders/` into the "Shader" property slot of the ShaderMaterial
-<details>
+4. Profit!
 
-You can modify one of the provided shaders, but remember to copy it to a fresh-new Shader resource first by clicking the little down-arrow next to the Shader resource and clicking "Make Unique", so your cool changes don't overwrite the original Shader resource file!
+You can drag-and-drop any of the shaders from `addons/godot-line3d/shaders/` into the "Shader" property slot. Remember to click "Make Unique" on it so you don't overwrite the original plugin data when you edit them.
 
-![Godot UI with "Make Unique" highlighted](unique_shader.png)
-
-</details>
-<br>
-
-5.  Enjoy your line!
 
 # To-Do
-- Custom curve system with orientable points 
-- SpatialMaterial shader injection?
+- Implement curve system with a fully custom "tangent"
+- SpatialMaterial shader injection

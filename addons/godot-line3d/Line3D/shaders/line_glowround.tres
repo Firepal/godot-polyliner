@@ -1,0 +1,75 @@
+[gd_resource type="Shader" format=2]
+
+[resource]
+code = "shader_type spatial;
+render_mode blend_add;
+render_mode unshaded;
+//render_mode cull_front;
+
+vec3 project(vec3 point, vec3 normal){
+	return (normal*(dot(normal,point)/dot(point,point)));
+}
+float line_process(float width, inout vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 dir_to_next_vertex, vec2 uv,
+					out vec3 normal, out vec3 tangent){
+	vec3 dir_to_cam = (world_mat*vec4(vertex,1.0)).xyz - cam_pos;
+	dir_to_cam *= mat3(world_mat);
+	vec3 perp = cross(dir_to_cam,dir_to_next_vertex);
+	
+	float is_end = 0.0;
+	is_end = float(abs(uv.x-0.5) > 0.4999);
+	
+	vec3 rounder = vec3(0.0);
+	float endsign = sign(float(uv.x < 0.5)-0.5);
+	rounder = (is_end*endsign)*normalize(-cross(perp,dir_to_cam));
+	
+	perp = normalize(perp);
+	tangent = perp;
+	normal = cross(perp,dir_to_next_vertex);
+	
+	float side = (float(uv.y > 0.5)*2.0)-1.0;
+	perp = (perp*side)-rounder;
+	
+	vertex += perp*width;
+	return is_end;
+}
+uniform float line_width = 0.03;
+uniform float line_softness : hint_range(0.0,0.5) = 0.1;
+uniform float glow_width = 0.1;
+varying float is_end;
+varying float lw;
+void vertex(){
+	lw = max(line_width,0.001)/max(line_width+glow_width,0.001);
+	
+	
+	is_end = line_process(line_width+glow_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,NORMAL,UV2,
+							NORMAL,TANGENT);
+}
+
+uniform vec4 color : hint_color = vec4(vec3(1.0),1.0);
+void fragment(){
+	float line = abs(UV.y*2.0-1.0);
+	float paraend = smoothstep(1.0,0.0,is_end);
+	vec2 vals = vec2(lw,0.0);
+//	float roundededge = smoothstep(vals[0],vals[1],is_end)*smoothstep(vals[0],vals[1],line);
+//	roundededge = smoothstep(0.5-line_softness,0.5+line_softness,roundededge);
+//	roundededge += (1.0-pow(1.0-(smoothstep(1.0,0.0,is_end)*smoothstep(1.0,0.0,line)),0.5));
+	
+	float roundededge = smoothstep(lw*0.5,0.5,length(vec2(is_end*0.5,UV.y-0.5)));
+	roundededge = 1.0-pow(roundededge,0.2);
+	
+//	roundededge += ((1.0-sqrt(smoothstep(0.0,1.0,is_end)))*smoothstep(1.0,0.0,line))*0.5;
+
+//	float roundededge = sqrt(smoothstep(1.0,0.0,is_end))*smoothstep(1.0,0.0,(abs(UV.y*2.0-1.0)));
+//	roundededge = 1.0-pow(smoothstep(1.0,0.0,roundededge),0.2);
+
+//	roundededge = smoothstep(0.45,0.55,roundededge);
+//	roundededge = smoothstep(0.0,4.0,roundededge);
+//	roundededge = smoothstep(lw,lw*0.5,line)+(smoothstep(0.0,1.0,roundededge)*0.5);
+	
+	ALBEDO = mix(color.rgb,vec3(1.0),roundededge);
+	ALPHA = roundededge;
+//	ALPHA *= sin(UV.x*20.0+(TIME*20.0))*0.5+0.5;
+	
+	NORMALMAP.x = UV.y;
+	ROUGHNESS = 0.7;
+}"

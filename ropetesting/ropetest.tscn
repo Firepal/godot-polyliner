@@ -1,0 +1,304 @@
+[gd_scene load_steps=21 format=2]
+
+[ext_resource path="res://addons/godot-line3d/Line3D/shaders/line_neon.shader" type="Shader" id=1]
+[ext_resource path="res://ropetesting/ropetest.gd" type="Script" id=2]
+[ext_resource path="res://addons/godot-line3d/Line3D/Line3D.gd" type="Script" id=3]
+[ext_resource path="res://addons/godot-line3d/shaders/line_glow.gdshader" type="Shader" id=4]
+[ext_resource path="res://addons/godot-line3d/Trail3D/Trail3D.gd" type="Script" id=6]
+[ext_resource path="res://addons/godot-line3d/shaders/swoosh.gdshader" type="Shader" id=7]
+
+[sub_resource type="ProceduralSky" id=1]
+sky_top_color = Color( 0.219608, 0.219608, 0.219608, 1 )
+sky_horizon_color = Color( 0.411765, 0.411765, 0.411765, 1 )
+texture_size = 0
+
+[sub_resource type="Environment" id=2]
+background_mode = 2
+background_sky = SubResource( 1 )
+ambient_light_color = Color( 0.0431373, 0, 0.356863, 1 )
+ambient_light_sky_contribution = 0.0
+
+[sub_resource type="PlaneMesh" id=3]
+
+[sub_resource type="BoxShape" id=9]
+extents = Vector3( 1, 0.4, 1 )
+
+[sub_resource type="BoxShape" id=11]
+resource_local_to_scene = true
+extents = Vector3( 0.3, 0.3, 0.3 )
+
+[sub_resource type="ShaderMaterial" id=12]
+shader = ExtResource( 1 )
+shader_param/line_width = 0.1
+shader_param/edge_pos = 0.9
+shader_param/edge_softness = 0.9
+shader_param/edge_diminish = 0.9
+
+[sub_resource type="SphereShape" id=10]
+radius = 0.1
+
+[sub_resource type="Shader" id=28]
+code = "shader_type spatial;
+render_mode unshaded;
+
+mat3 rotation3dX(float angle) {
+	float s = sin(angle);
+	float c = cos(angle);
+
+	return mat3(
+		vec3(1.0, 0.0, 0.0),
+		vec3(0.0, c, s),
+		vec3(0.0, -s, c)
+	);
+}
+
+mat3 rotate(vec3 axis, float angle) {
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+	
+	vec3 xxx = vec3(oc * axis.x * axis.x + c * s,
+					oc * axis.x * axis.y - axis.z * s, 
+					oc * axis.z * axis.x + axis.y * s);
+	
+	vec3 yyy = vec3(oc * axis.x * axis.y + axis.z * s, 
+					oc * axis.y * axis.y + c * s,
+					oc * axis.y * axis.z - axis.x * s);
+	
+	vec3 zzz = vec3(oc * axis.z * axis.x - axis.y * s, 
+					oc * axis.y * axis.z + axis.x * s,
+					oc * axis.z * axis.z + c * s);
+	
+	return mat3(xxx,yyy,zzz);
+}
+
+float sdCylinder( vec3 p, float c ){
+	return length(p.yz)-c;
+}
+
+
+varying vec3 eye_dir;
+void vertex(){
+	vec3 world_cam = CAMERA_MATRIX[3].xyz;
+	vec3 world_vertex = (WORLD_MATRIX * vec4(VERTEX,1.0)).xyz;
+	
+	BINORMAL = cross(TANGENT,NORMAL);
+	mat3 TBN = mat3(
+		TANGENT,
+		BINORMAL,
+		NORMAL
+	);
+	mat3 world_TBN = mat3(WORLD_MATRIX) * TBN;
+	
+	eye_dir = (world_vertex - world_cam) * world_TBN;
+}
+
+float scene(vec3 p){
+//	p -= vec3(0.0,-0.3,0.0);
+//	p = rotate(vec3(0.0,1.0,0.0),p.x*0.04) * p;
+	p = p*rotation3dX(p.x*4.14);
+	float o1 = sdCylinder(p - vec3(0.0,-0.2,0.0),0.2);
+	float o2 = sdCylinder(p - vec3(0.0,0.1,0.2),0.2);
+	float o3 = sdCylinder(p - vec3(0.0,0.1,-0.2),0.2);
+	
+	float rope = min(o1,min(o2,o3));
+	
+	return rope;
+}
+
+vec3 getNormal( in vec3 p )
+{
+    const float h = 0.0001; // replace by an appropriate value
+    const vec2 k = vec2(1,-1);
+    return normalize( k.xyy*scene( p + k.xyy*h ) + 
+                      k.yyx*scene( p + k.yyx*h ) + 
+                      k.yxy*scene( p + k.yxy*h ) + 
+                      k.xxx*scene( p + k.xxx*h ) );
+}
+
+float raymarch(vec3 ro, vec3 rd){
+	float total_dist = 0.0;
+	
+	for(int i=0;i < 40;i++){
+		vec3 ray = ro + (rd * total_dist);
+		
+		float dist = scene(ray);
+		
+		if (dist < 0.005){
+			return total_dist;
+		}
+		
+		total_dist += dist;
+	}
+	
+	return -1.0;
+}
+
+float fakeao(vec3 p,vec3 n){
+	vec3 delta = n*0.05;
+	float output = scene(p+delta);
+	output += scene(p+delta*0.5)*1.2;
+	output += scene(p+delta*1.0)*1.4;
+	output += scene(p+delta*2.0)*1.8;
+	return 1.0-(exp(output));
+}
+vec2 hash22(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
+	p3 += dot(p3, p3.yzx+33.33);
+	return fract((p3.xx+p3.yz)*p3.zy);
+}
+float ao(vec3 p, vec3 n, vec2 fragcoord)
+{
+	vec3 t = normalize(cross(n,vec3(0.0,1.0,0.0)));
+	vec3 b = normalize(cross(t,n));
+	
+	float inv_t = 1.0/15.0;
+	
+	float occ = 0.0;
+	for (int i=0;i<10;i++)
+	{
+		vec2  aa = ( hash22(fragcoord+TIME*float(i+1)) );
+		float ra = sqrt(aa.y);
+		float rx = ra*cos(6.2831*aa.x); 
+		float ry = ra*sin(6.2831*aa.x);
+		float rz = sqrt( 1.0-aa.y );
+		vec3  dir = vec3( rx*t + ry*b + rz*n );
+		vec3 no;
+		float hit = raymarch(p+dir*0.2,dir);
+		if (hit < 0.0)
+			occ += inv_t;
+	}
+	
+	return occ;
+}
+
+void fragment(){
+	vec3 ro = vec3(UV,0.0);
+	ro += vec3(0.0,-0.5,0.5);
+	vec3 rd = normalize(eye_dir);
+	
+	float hit = raymarch(ro, rd);
+	
+	vec3 hitpos = ro + rd * hit;
+	
+	vec3 normal = getNormal(hitpos);
+	float ao = ao(hitpos,normal,FRAGCOORD.xy);
+	
+	if (hit < 0.0)	discard;
+	ALBEDO = vec3(1.0,0.5,0.0) *  (ao);
+}"
+
+[sub_resource type="ShaderMaterial" id=18]
+shader = SubResource( 28 )
+
+[sub_resource type="QuadMesh" id=22]
+
+[sub_resource type="CubeMesh" id=19]
+
+[sub_resource type="BoxShape" id=20]
+
+[sub_resource type="ShaderMaterial" id=27]
+shader = ExtResource( 7 )
+shader_param/line_width = 1.0
+shader_param/tangent_facing = true
+shader_param/offset = 1.5
+shader_param/color = Color( 1, 1, 1, 1 )
+
+[sub_resource type="ShaderMaterial" id=29]
+shader = ExtResource( 4 )
+shader_param/tangent_facing = false
+shader_param/rounded = true
+shader_param/line_width = 0.0
+shader_param/glow_size = 0.366
+shader_param/color = Color( 1, 1, 1, 1 )
+
+[node name="Spatial" type="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0148439, 0, -0.0798446 )
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 2 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
+transform = Transform( 0.707107, 0.5, 0.5, 0, -0.707107, 0.707107, 0.707107, -0.5, -0.5, 0, 4.37562, 0 )
+shadow_enabled = true
+directional_shadow_mode = 1
+directional_shadow_split_1 = 0.224
+directional_shadow_normal_bias = 0.2
+directional_shadow_bias_split_scale = 1.0
+directional_shadow_max_distance = 20.0
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 0.880701, 0.245057, -0.405356, 0, 0.855771, 0.517355, 0.473673, -0.455635, 0.753678, -4.9645, 9.35005, 5.88982 )
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+transform = Transform( 9, 0, 0, 0, 1, 0, 0, 0, 9, -0.707202, 1.51394, 0.0481925 )
+mesh = SubResource( 3 )
+material/0 = null
+
+[node name="StaticBody" type="StaticBody" parent="MeshInstance"]
+
+[node name="CollisionShape" type="CollisionShape" parent="MeshInstance/StaticBody"]
+shape = SubResource( 9 )
+
+[node name="RigidBody" type="RigidBody" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -4.59139, 9.11517, -0.591243 )
+mode = 3
+can_sleep = false
+script = ExtResource( 2 )
+end_segment = NodePath("../RigidBody2")
+segment_count = 20
+
+[node name="CollisionShape" type="CollisionShape" parent="RigidBody"]
+shape = SubResource( 11 )
+disabled = true
+
+[node name="MeshInstance" type="MeshInstance" parent="RigidBody"]
+visible = false
+material_override = SubResource( 12 )
+
+[node name="RigidBody2" type="RigidBody" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 8.10631, 8.19932, 0 )
+mode = 3
+
+[node name="CollisionShape" type="CollisionShape" parent="RigidBody2"]
+shape = SubResource( 10 )
+
+[node name="MeshInstance2" type="MeshInstance" parent="."]
+transform = Transform( -3.29765e-08, -0.583896, 0.811829, 1.50819e-07, 0.811829, 0.583896, -1, 1.41694e-07, 6.12914e-08, -5.35959, 9.02738, -0.218791 )
+material_override = SubResource( 18 )
+mesh = SubResource( 22 )
+material/0 = SubResource( 18 )
+
+[node name="RigidBody3" type="RigidBody" parent="."]
+transform = Transform( 0.2, 0, 0, 0, 1, 0, 0, 0, 3, -1.50901, 12.1068, 0 )
+mass = 500.0
+can_sleep = false
+
+[node name="MeshInstance3" type="MeshInstance" parent="RigidBody3"]
+mesh = SubResource( 19 )
+skeleton = NodePath("../..")
+material/0 = null
+
+[node name="CollisionShape" type="CollisionShape" parent="RigidBody3"]
+shape = SubResource( 20 )
+
+[node name="OmniLight" type="OmniLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.38419e-07, 4.29619, -2.39214 )
+visible = false
+shadow_enabled = true
+omni_range = 12.6026
+
+[node name="Trail3D" type="Spatial" parent="."]
+transform = Transform( 0.636423, -0.771141, 0.0173914, 0.750486, 0.613855, -0.244843, 0.178133, 0.168876, 0.969406, -1.27924, 4.73535, -5.32034 )
+script = ExtResource( 6 )
+max_points = 23
+damping = 0.493
+material = SubResource( 27 )
+
+[node name="Line3D" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.27101, 0 )
+script = ExtResource( 3 )
+material = SubResource( 29 )
+points = PoolVector3Array( 0, 0, 0, 1.341, 0, 0 )

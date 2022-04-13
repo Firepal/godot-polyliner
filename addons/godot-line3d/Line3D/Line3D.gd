@@ -1,5 +1,5 @@
 tool
-extends Path
+extends Spatial
 
 enum Renderer {
 	STATIC, # Use SurfaceTool for rendering
@@ -21,7 +21,6 @@ enum UVMode {
 	REPEAT
 }
 
-export(Renderer) var renderer = Renderer.STATIC setget set_renderer
 export(RenderMode) var render_mode = RenderMode.TRIANGLES setget set_render_mode
 export(UVMode) var uv_mode = UVMode.STRETCH setget set_uv_mode
 export(float,0.0,100.0) var uv_size = 1.0 setget set_uv_size
@@ -30,25 +29,6 @@ export(Material) var material setget set_material
 var _internal_render_mode = Mesh.PRIMITIVE_TRIANGLES
 
 var _linegen = LineGen3D.new()
-
-func set_renderer(value):
-	renderer = value
-	
-	if _mesh_instance and _imm_geo:
-		if Engine.editor_hint:
-			_show_mesh_instance()
-		else:
-			match value:
-				Renderer.STATIC: _show_mesh_instance()
-				Renderer.IMMEDIATE: _show_imm_geo()
-	redraw()
-
-func _show_imm_geo():
-	_mesh_instance.visible = false
-	_imm_geo.visible = true
-func _show_mesh_instance():
-	_imm_geo.visible = false
-	_mesh_instance.visible = true
 
 func set_render_mode(value):
 	render_mode = value
@@ -68,41 +48,61 @@ func set_uv_size(value):
 
 func set_material(mat):
 	if mat == null:
-		material = null
-		return
+		var default_mat : ShaderMaterial = load("res://addons/godot-line3d/Line3D/default_line_material.tres").duplicate(true)
+		material = default_mat
 	if mat is ShaderMaterial:
 		material = mat
 		if not mat.is_connected("changed",self,"_update_material"):
 			mat.connect("changed",self,"_update_material")
-		redraw()
+	_update_material()
 
-var _mesh_instance = null
-var _imm_sf = ImmediateSurface.new()
-var _imm_geo : ImmediateGeometry = null
+var _mesh_instance = MeshInstance.new()
 
 func _update_material():
 	_mesh_instance.material_override = material
-	_imm_geo.material_override = material
-
-func _enter_tree():
-	_mesh_instance = MeshInstance.new()
-	add_child(_mesh_instance)
 	
-	_imm_geo = _imm_sf.get_immediate_geometry()
-	add_child(_imm_geo)
+func _enter_tree():
+	add_child(_mesh_instance)
 	
 	set_render_mode(render_mode)
 	set_uv_mode(uv_mode)
 	set_uv_size(uv_size)
+	
 	redraw()
 
+export var points = PoolVector3Array() setget set_points
+
+func set_points(val):
+	points = val
+	redraw()
+
+func add_point(point : Vector3):
+	points.push_back(point)
+
+func clear_points():
+	points.clear()
+
+func get_point_count() -> int:
+	return points.size()
+
+func get_point_position(i : int) -> Vector2:
+	return points[i]
+
+func remove_point(i : int):
+	points.remove(i)
+
+func set_point_position(i : int):
+	points.remove(i)
+
 func _draw():
-	var points = curve.get_baked_points()
 	var length = uv_size
 	
-	if uv_mode == UVMode.REPEAT: length *= curve.get_baked_length()
+	print()
+	var start = OS.get_ticks_usec()
+	_mesh_instance.mesh = _linegen.draw_from_points_strip(points)
+	var end = OS.get_ticks_usec()
+	print( points.size(), " points, ", (end-start)*0.001, " ms" )
 	
-	_mesh_instance.mesh = _linegen.draw_from_points(points,length)
 	_update_material()
 
 func redraw():

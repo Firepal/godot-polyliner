@@ -1,0 +1,98 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://osc/Oscer.gd" type="Script" id=1]
+[ext_resource path="res://osc/jobinterview-petscop.wav" type="AudioStream" id=3]
+
+[sub_resource type="Shader" id=7]
+code = "shader_type spatial;
+render_mode unshaded;
+vec3 line_process(float width, vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 dir_to_next_vertex, vec2 uv,
+					out vec3 normal, out vec3 tangent){
+	vec3 wv = (world_mat*vec4(vertex,1.0)).xyz;
+	vec3 dir_to_cam = cam_pos-wv;
+	dir_to_cam *= mat3(world_mat);
+	vec3 perp = normalize(cross(dir_to_cam,-dir_to_next_vertex));
+	
+	tangent = perp;
+	normal = cross(perp,dir_to_next_vertex);
+	
+	if (uv.y < 0.5)	perp *= -1.0;
+	vertex += perp*width;
+	return vertex;
+}
+void vertex(){
+	VERTEX = line_process(0.01, VERTEX, WORLD_MATRIX, CAMERA_MATRIX[3].xyz, COLOR.rgb, UV, NORMAL, TANGENT);
+}
+
+void fragment() {
+	
+	ALBEDO = vec3(1.0,1.0,0.0);
+	ALPHA = 1.0-pow(smoothstep(1.0,0.0,UV.x),0.05);
+	ALPHA *= smoothstep(1.0,0.0,abs(UV.y*2.0-1.0));
+}"
+
+[sub_resource type="ShaderMaterial" id=8]
+shader = SubResource( 7 )
+
+[sub_resource type="PlaneMesh" id=9]
+
+[sub_resource type="QuadMesh" id=3]
+size = Vector2( 0.2, 0.2 )
+
+[sub_resource type="Shader" id=4]
+code = "shader_type spatial;
+render_mode unshaded;
+
+mat3 facevec(vec3 vector,vec3 up){
+	vec3 c = normalize(vector);
+	vec3 a = normalize(cross(c,up));
+	vec3 b = normalize(cross(c,a));
+	return mat3(a,b,c);
+}
+
+void vertex(){
+//	vec3 to_cam = (CAMERA_MATRIX[3].xyz-WORLD_MATRIX[3].xyz)*mat3(WORLD_MATRIX);
+//	mat3 face_camera = facevec(to_cam,vec3(0.0,1.0,0.0));
+//	VERTEX = face_camera*VERTEX;
+	MODELVIEW_MATRIX[0].xyz = vec3(1.0,0.0,0.0);
+	MODELVIEW_MATRIX[1].xyz = vec3(0.0,1.0,0.0);
+	MODELVIEW_MATRIX[2].xyz = vec3(0.0,0.0,1.0);
+	UV = (UV*2.0)-1.0;
+}
+
+void fragment(){
+	float circ = smoothstep(0.01,1.0,dot(UV,UV));
+	circ = 1.0-pow(circ,0.2);
+	const vec3 green = vec3(0.0,1.0,0.0);
+	const vec3 white = vec3(1.0);
+	ALBEDO = mix(green,white,circ);
+	ALPHA = circ;
+}"
+
+[sub_resource type="ShaderMaterial" id=5]
+shader = SubResource( 4 )
+
+[sub_resource type="Environment" id=6]
+background_mode = 1
+
+[node name="Spatial" type="Spatial"]
+
+[node name="Trail3D" type="MeshInstance" parent="."]
+material_override = SubResource( 8 )
+mesh = SubResource( 9 )
+material/0 = null
+script = ExtResource( 1 )
+
+[node name="MeshInstance" type="MeshInstance" parent="Trail3D"]
+mesh = SubResource( 3 )
+material/0 = SubResource( 5 )
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 3 )
+autoplay = true
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.64681 )
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 6 )

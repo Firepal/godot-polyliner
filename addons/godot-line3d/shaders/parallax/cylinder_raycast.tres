@@ -1,0 +1,139 @@
+[gd_resource type="Shader" format=2]
+
+[resource]
+code = "shader_type spatial;
+render_mode skip_vertex_transform;
+//render_mode unshaded;
+//render_mode depth_draw_alpha_prepass;
+//render_mode specular_schlick_ggx;
+
+uniform float line_width = 0.03;
+uniform bool tangent_facing = false;
+uniform bool rounded = false;
+float line_process(float width, inout vec3 vertex, mat4 world_mat, vec3 cam_pos, vec2 uv,
+					inout vec3 normal, inout vec3 tangent){
+	vec3 dir_to_cam = ((world_mat*vec4(vertex,1.0)).xyz - cam_pos) * mat3(world_mat);
+	
+	vec3 dir_to_next_point = normal;
+	vec3 perp = tangent;
+	if (!tangent_facing) {
+		perp = normalize(cross(dir_to_cam,dir_to_next_point));
+	}
+	
+	
+	float is_end = float(abs(uv.x-0.5) > 0.4999) * -sign(uv.x-0.5);
+	vec3 rounder = vec3(0.0); 
+	if (rounded) { 
+		rounder = is_end * -normalize(cross(perp,dir_to_cam));
+	}
+
+	float side = sign(float(uv.y > 0.5)-0.5);
+	vertex += ((perp*side)-rounder) * width;
+	
+	tangent = perp;
+	normal = cross(perp,dir_to_next_point);
+	
+	return is_end;
+}
+
+varying mat3 TBN;
+varying vec3 eye_dir;
+varying float is_end;
+void vertex(){
+	is_end = line_process(line_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,UV2,
+							NORMAL,TANGENT);
+	
+	BINORMAL = TANGENT;
+	TANGENT = cross(BINORMAL,NORMAL);
+	
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	BINORMAL = mat3(MODELVIEW_MATRIX) * BINORMAL;
+	
+	TBN = mat3(
+		TANGENT,
+		BINORMAL,
+		NORMAL
+	);
+	
+	eye_dir = VERTEX * TBN;
+}
+
+vec3 getNormal( in vec3 p )
+{
+    return normalize( p * vec3(0.0,1.0,1.0));
+}
+
+vec2 cylIntersect(vec3 ro, vec3 rd, in vec3 ca, float cr)
+{
+    float card = dot(ca,rd);
+    float caoc = dot(ca,ro);
+    float a = 1.0 - card*card;
+    float b = dot( ro, rd) - caoc*card;
+    float c = dot( ro, ro) - caoc*caoc - cr*cr;
+    float h = b*b - a*c;
+    if( h<0.0 ) return vec2(-1.0); //no intersection
+    h = sqrt(h);
+    return vec2(-b-h,-b+h)/a;
+}
+
+float raycast(vec3 ro, vec3 rd){
+	return cylIntersect(ro,rd,vec3(1.0,0.0,0.0),0.4).y;
+}
+
+vec2 hash22(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
+	p3 += dot(p3, p3.yzx+33.33);
+	return fract((p3.xx+p3.yz)*p3.zy);
+}
+float ao(vec3 p, vec3 n, vec2 fragcoord)
+{
+	vec3 t = normalize(cross(n,vec3(0.0,1.0,0.0)));
+	vec3 b = normalize(cross(t,n));
+	
+	float inv_t = 1.0/10.0;
+	
+	float occ = 0.0;
+	for (int i=0;i<10;i++)
+	{
+		vec2  aa = ( hash22(fragcoord+TIME*float(i+1)) );
+		float ra = sqrt(aa.y);
+		float rx = ra*cos(6.2831*aa.x); 
+		float ry = ra*sin(6.2831*aa.x);
+		float rz = sqrt( 1.0-aa.y );
+		vec3  dir = vec3( rx*t + ry*b + rz*n );
+		vec3 no;
+		float hit = raycast(p+dir*0.1,dir);
+		if (hit < 0.0)
+			occ += inv_t;
+	}
+	
+	return occ;
+}
+
+uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.2),1.0);
+uniform float twirl_aspect = 0.5;
+
+void fragment(){
+	vec3 ro = vec3(UV,0.5);
+	
+	// Correct for stretching from line width
+	ro.x *= twirl_aspect / line_width;
+	
+	ro.y += -0.5;
+	
+	vec3 rd = normalize(eye_dir);
+	
+	float hit = raycast(ro, rd);
+	if (hit < 0.0) { discard; }
+	
+	vec3 hitpos = ro + rd * hit;
+	vec3 hit_normal = getNormal(hitpos);
+	NORMALMAP.x = hitpos.y*0.5+0.5;
+	
+	ALBEDO = vec3(0.5);
+	ROUGHNESS = 0.5;
+}
+"

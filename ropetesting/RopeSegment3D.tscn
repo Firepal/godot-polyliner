@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://ropetesting/RopeSegment3D.gd" type="Script" id=1]
+
+[sub_resource type="CapsuleShape" id=1]
+radius = 0.1
+
+[node name="RigidBody" type="RigidBody"]
+can_sleep = false
+script = ExtResource( 1 )
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0 )
+shape = SubResource( 1 )
+
+[node name="Generic6DOFJoint" type="Generic6DOFJoint" parent="."]
+nodes/node_a = NodePath("..")
+linear_limit_x/enabled = false
+linear_spring_x/enabled = true
+linear_spring_x/stiffness = 50.0
+linear_spring_x/damping = 1.0
+linear_spring_x/equilibrium_point = 0.1
+angular_limit_x/enabled = false
+linear_limit_y/enabled = false
+linear_spring_y/enabled = true
+linear_spring_y/stiffness = 50.0
+linear_spring_y/damping = 1.0
+linear_spring_y/equilibrium_point = 0.1
+angular_limit_y/enabled = false
+linear_limit_z/enabled = false
+linear_spring_z/enabled = true
+linear_spring_z/stiffness = 50.0
+linear_spring_z/damping = 1.0
+linear_spring_z/equilibrium_point = 0.1
+angular_limit_z/enabled = false

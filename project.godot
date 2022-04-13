@@ -18,10 +18,16 @@ _global_script_classes=[ {
 "class": "LineGen3D",
 "language": "GDScript",
 "path": "res://addons/godot-line3d/LineGen3D/LineGen3D.gd"
+}, {
+"base": "RigidBody",
+"class": "Rope3D",
+"language": "GDScript",
+"path": "res://ropetesting/Rope3D.gd"
 } ]
 _global_script_class_icons={
 "ImmediateSurface": "",
-"LineGen3D": ""
+"LineGen3D": "",
+"Rope3D": ""
 }
 
 [application]
