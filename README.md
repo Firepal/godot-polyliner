@@ -1,10 +1,8 @@
-# Line3D early development
+# Polyliner early development
 <img src="icon.png"></img><br>
 ***This plugin is currently being developed in Godot 3.4 and is not guaranteed to function in 3.3***    
 
-Adds 3D GPU-based thick line rendering capabilities.
-
-[How it Works!](HOW.md)
+Adds 3D thick line rendering capabilities.
 
 # Usage Instructions
 
@@ -23,7 +21,7 @@ To add handles to a point, click the greyish "Select Points" icon at the top of 
 
 4. Profit!
 
-You can drag-and-drop any of the shaders from `addons/godot-line3d/shaders/` into the "Shader" property slot. Remember to click "Make Unique" on it so you don't overwrite the original plugin data when you edit them.
+You can drag-and-drop any of the shaders from `addons/godot-polyliner/shaders/` into the "Shader" property slot. Remember to click "Make Unique" on it so you don't overwrite the original plugin data when you edit them.
 
 
 # To-Do
