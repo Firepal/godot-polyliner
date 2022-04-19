@@ -103,11 +103,10 @@ func _draw():
 	var points = Array(curve.get_baked_points())
 	var length = uv_size * curve.get_baked_length()
 	
-	print()
-	var start = OS.get_ticks_usec()
+#	var start = OS.get_ticks_usec()
 	_mesh_instance.mesh = _linegen.draw_from_points_strip(points,length)
-	var end = OS.get_ticks_usec()
-	print( points.size(), " points, ", (end-start)*0.001, " ms" )
+#	var end = OS.get_ticks_usec()
+#	print( points.size(), " points, ", (end-start)*0.001, " ms" )
 	
 	_update_material()
 

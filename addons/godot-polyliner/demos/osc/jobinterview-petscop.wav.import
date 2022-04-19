@@ -1,0 +1,21 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/jobinterview-petscop.wav-e3fe466f836ddb9b62497a809d7d0c82.sample"
+
+[deps]
+
+source_file="res://addons/godot-polyliner/demos/osc/jobinterview-petscop.wav"
+dest_files=[ "res://.import/jobinterview-petscop.wav-e3fe466f836ddb9b62497a809d7d0c82.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop=false
+compress/mode=0

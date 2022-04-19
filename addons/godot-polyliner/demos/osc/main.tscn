@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=2]
 
-[ext_resource path="res://osc/Oscer.gd" type="Script" id=1]
-[ext_resource path="res://osc/jobinterview-petscop.wav" type="AudioStream" id=3]
+[ext_resource path="res://addons/godot-polyliner/demos/osc/Oscer.gd" type="Script" id=1]
+[ext_resource path="res://addons/godot-polyliner/demos/osc/jobinterview-petscop.wav" type="AudioStream" id=2]
 
 [sub_resource type="Shader" id=7]
 code = "shader_type spatial;
@@ -88,7 +88,7 @@ mesh = SubResource( 3 )
 material/0 = SubResource( 5 )
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
-stream = ExtResource( 3 )
+stream = ExtResource( 2 )
 autoplay = true
 
 [node name="Camera" type="Camera" parent="."]

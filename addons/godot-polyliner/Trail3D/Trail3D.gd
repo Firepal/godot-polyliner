@@ -27,7 +27,11 @@ export(bool) var interpolate_skip = false setget set_interpolate_skip
 
 export(ShaderMaterial) var material = null setget _set_material
 
+
+var damped_transform = Transform()
+
 func _ready():
+	damped_transform = global_transform
 	_mesh_instance.set_as_toplevel(true)
 	set_sampling_mode(sampling_mode)
 	set_max_points(max_points)
@@ -71,8 +75,6 @@ func set_max_points(val):
 func refill_points(fill_index : int = 0):
 	for i in range(fill_index,points.size()):
 		points[i] = points[fill_index]
-
-var damped_transform = global_transform
 
 func _shift_points_forward():
 	var s = points.size()-1

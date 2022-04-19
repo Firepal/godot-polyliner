@@ -22,7 +22,7 @@ _global_script_classes=[ {
 "base": "RigidBody",
 "class": "Rope3D",
 "language": "GDScript",
-"path": "res://ropetesting/Rope3D.gd"
+"path": "res://addons/godot-polyliner/demos/ropetesting/Rope3D.gd"
 } ]
 _global_script_class_icons={
 "ImmediateSurface": "",
@@ -33,8 +33,12 @@ _global_script_class_icons={
 [application]
 
 config/name="Polyliner"
-run/main_scene="res://demo/Spatial.tscn"
+run/main_scene="res://addons/godot-polyliner/demos/demo/Spatial.tscn"
 config/icon="res://icon.png"
+
+[audio]
+
+default_bus_layout="res://addons/godot-polyliner/demos/default_bus_layout.tres"
 
 [editor_plugins]
 
@@ -60,4 +64,4 @@ quality/shading/force_vertex_shading.mobile=false
 quality/shading/force_lambert_over_burley.mobile=false
 quality/shading/force_blinn_over_ggx.mobile=false
 quality/filters/msaa=2
-environment/default_environment="res://default_env.tres"
+environment/default_environment="res://addons/godot-polyliner/demos/default_env.tres"

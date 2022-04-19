@@ -1,12 +1,12 @@
 [gd_scene load_steps=29 format=2]
 
-[ext_resource path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" type="Script" id=1]
-[ext_resource path="res://ropetesting/ropetest.gd" type="Script" id=2]
-[ext_resource path="res://addons/godot-polyliner/Line3D/Line3D.gd" type="Script" id=3]
-[ext_resource path="res://addons/godot-polyliner/shaders/line_glow.gdshader" type="Shader" id=4]
-[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_chain.gdshader" type="Shader" id=5]
-[ext_resource path="res://addons/godot-polyliner/Trail3D/Trail3D.gd" type="Script" id=6]
-[ext_resource path="res://addons/godot-polyliner/shaders/swoosh.gdshader" type="Shader" id=7]
+[ext_resource path="res://addons/godot-polyliner/shaders/line_glow.gdshader" type="Shader" id=1]
+[ext_resource path="res://addons/godot-polyliner/Line3D/Line3D.gd" type="Script" id=2]
+[ext_resource path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" type="Script" id=3]
+[ext_resource path="res://addons/godot-polyliner/Trail3D/Trail3D.gd" type="Script" id=4]
+[ext_resource path="res://ropetesting/ropetest.gd" type="Script" id=5]
+[ext_resource path="res://addons/godot-polyliner/shaders/swoosh.gdshader" type="Shader" id=6]
+[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_chain.gdshader" type="Shader" id=7]
 
 [sub_resource type="ProceduralSky" id=1]
 sky_top_color = Color( 0.219608, 0.219608, 0.219608, 1 )
@@ -374,7 +374,7 @@ shader = SubResource( 28 )
 [sub_resource type="BoxShape" id=20]
 
 [sub_resource type="ShaderMaterial" id=27]
-shader = ExtResource( 7 )
+shader = ExtResource( 6 )
 shader_param/line_width = 1.0
 shader_param/tangent_facing = true
 shader_param/tangent_offset = 0.5
@@ -382,7 +382,7 @@ shader_param/color = Color( 1, 1, 1, 1 )
 shader_param/alpha_curve = 0.5
 
 [sub_resource type="ShaderMaterial" id=29]
-shader = ExtResource( 4 )
+shader = ExtResource( 1 )
 shader_param/tangent_facing = false
 shader_param/rounded = true
 shader_param/line_width = 0.0
@@ -391,7 +391,7 @@ shader_param/color = Color( 1, 1, 1, 1 )
 shader_param/curve = 0.2
 
 [sub_resource type="ShaderMaterial" id=37]
-shader = ExtResource( 5 )
+shader = ExtResource( 7 )
 shader_param/line_width = 0.191
 shader_param/angle = 1.124
 shader_param/link_radius = 0.15
@@ -410,7 +410,7 @@ _data = {
 }
 
 [sub_resource type="ShaderMaterial" id=39]
-shader = ExtResource( 5 )
+shader = ExtResource( 7 )
 shader_param/line_width = 0.05
 shader_param/angle = 0.0
 shader_param/link_radius = 0.15
@@ -451,7 +451,7 @@ shape = SubResource( 9 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -4.59139, 11.7783, -0.591243 )
 mode = 3
 can_sleep = false
-script = ExtResource( 2 )
+script = ExtResource( 5 )
 end_segment = NodePath("../RigidBody2")
 segment_count = 27
 segment_mass = 50.0
@@ -468,7 +468,7 @@ mesh = SubResource( 35 )
 material/0 = null
 
 [node name="Line3D" type="Spatial" parent="RigidBody"]
-script = ExtResource( 3 )
+script = ExtResource( 2 )
 material = SubResource( 31 )
 points = PoolVector3Array( 0, 0, 0, 1.074, 0, 0 )
 
@@ -514,7 +514,7 @@ omni_range = 12.6026
 
 [node name="Trail3D" type="Spatial" parent="."]
 transform = Transform( -0.321541, -0.946734, 0.0173914, 0.916678, -0.31583, -0.244843, 0.237294, -0.0627848, 0.969406, 0.154614, 3.80043, -5.5822 )
-script = ExtResource( 6 )
+script = ExtResource( 4 )
 max_points = 23
 damping = 0.493
 material = SubResource( 27 )
@@ -522,18 +522,18 @@ material = SubResource( 27 )
 [node name="Line3D" type="Spatial" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.27101, 0 )
 visible = false
-script = ExtResource( 3 )
+script = ExtResource( 2 )
 material = SubResource( 29 )
 points = PoolVector3Array( 0, 0, 0, 1.341, 0, 0 )
 
 [node name="Line3D2" type="Spatial" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 3.72529e-09, 5.64986, 0 )
-script = ExtResource( 3 )
+script = ExtResource( 2 )
 material = SubResource( 37 )
 points = PoolVector3Array( 0, 0, 0, 4, 0, 0 )
 
 [node name="LinePath3D" type="Path" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.226341, 6.81151, -0.413063 )
 curve = SubResource( 38 )
-script = ExtResource( 1 )
+script = ExtResource( 3 )
 material = SubResource( 39 )
