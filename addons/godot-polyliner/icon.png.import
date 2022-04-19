@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/icon.png-09af75b2ef06579c5f5dcd5ec439f7d2.stex"
+path="res://.import/icon.png-b47e422175a72258caae14cf305ed745.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/godot-line3d/Line3D/icon.png"
-dest_files=[ "res://.import/icon.png-09af75b2ef06579c5f5dcd5ec439f7d2.stex" ]
+source_file="res://addons/godot-polyliner/icon.png"
+dest_files=[ "res://.import/icon.png-b47e422175a72258caae14cf305ed745.stex" ]
 
 [params]
 

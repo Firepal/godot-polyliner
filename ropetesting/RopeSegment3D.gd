@@ -4,6 +4,7 @@ onready var joint = $Generic6DOFJoint
 onready var col_shape = $CollisionShape.shape
 
 var rope = null
+var id : int = 0
 var resistance : float = 100
 
 func _notification(what):
@@ -16,10 +17,25 @@ func _notification(what):
 			if rope != null:
 				rope.segments.erase(self)
 
+func _get_sibling_joints():
+	var siblings = []
+	var last_sibling = self
+	
+	while (last_sibling.get_child_count() > 1):
+		if not is_instance_valid(last_sibling.joint): break
+		last_sibling = get_node(last_sibling.joint.get_node_b())
+		if last_sibling == null: break
+		siblings.push_back(last_sibling)
+	
+	return siblings
+
+
 var broken = false
 func _break_joint():
-	joint.queue_free()
+	var sibs = _get_sibling_joints()
+	
 	broken = true
+	joint.queue_free()
 
 var break_timer = 0.0
 func _integrate_forces(state):
@@ -28,6 +44,6 @@ func _integrate_forces(state):
 	if vel_sqr > resistance: break_timer += state.step
 	else: break_timer = 0.0
 
-	if break_timer > 0.17 and not broken:
+	if break_timer > 0.5 and not broken and false:
 		_break_joint()
 	

@@ -1,5 +1,5 @@
 # Line3D
-Generates a customizable line mesh from the `Vector3` points you provide it using [LineGen3D](../LineGen3D/README.md).
+Generates a line mesh from the `Vector3` points you provide it.
 
 Analogous to [Line2D](https://docs.godotengine.org/en/stable/classes/class_line2d.html), but in 3D.
 

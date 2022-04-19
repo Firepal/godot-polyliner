@@ -20,12 +20,12 @@ var points = []
 
 export(SamplingMode) var sampling_mode = SamplingMode.Idle setget set_sampling_mode
 export(int,0,1000) var max_points = 10 setget set_max_points
-export(float,0.0,1.0) var damping = 0.0
+export(float,0.0,1.0,0.002) var damping = 0.5
 export(TangentAxis) var tangent_axis = TangentAxis.X
-export(int,0,20) var skip_frame = 0
+export(int,0,20) var skip_frames = 0
 export(bool) var interpolate_skip = false setget set_interpolate_skip
 
-export(ShaderMaterial) var material setget _set_material
+export(ShaderMaterial) var material = null setget _set_material
 
 func _ready():
 	_mesh_instance.set_as_toplevel(true)
@@ -41,8 +41,11 @@ func _exit_tree():
 	remove_child(_mesh_instance)
 
 func _set_material(mat):
-	material = mat
-	_mesh_instance.material_override = mat
+	if mat == null:
+		material = load("res://addons/godot-line3d/default_line_material.tres").duplicate(true)
+	if mat is ShaderMaterial:
+		material = mat
+	_mesh_instance.material_override = material
 
 func set_sampling_mode(mode):
 	sampling_mode = mode
@@ -59,8 +62,8 @@ func set_max_points(val):
 	var old_size = max_points
 	max_points = val
 	
-	if diff == 0: return
 	points.resize(val)
+	if diff == 0: return
 	print(diff)
 	if diff > 0:
 		refill_points(old_size-1)
@@ -92,7 +95,7 @@ func _redraw():
 var _mesh_xform : Transform = Transform.IDENTITY
 func _process(delta):
 	
-	if fmod(Engine.get_idle_frames(),max(skip_frame+1,1)) < 0.001:
+	if fmod(Engine.get_idle_frames(),max(skip_frames+1,1)) < 0.001:
 		_mesh_xform = global_transform
 		if sampling_mode == SamplingMode.Idle:
 			push_xform(global_transform)
@@ -107,7 +110,7 @@ func _process(delta):
 #		_debug_spheres()
 
 func _physics_process(delta):
-	if fmod(Engine.get_physics_frames(), max(skip_frame+1,1)) < 0.001:
+	if fmod(Engine.get_physics_frames(), max(skip_frames+1,1)) < 0.001:
 		push_xform(global_transform)
 
 # For testing correspondance between

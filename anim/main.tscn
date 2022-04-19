@@ -1,7 +1,7 @@
 [gd_scene load_steps=14 format=2]
 
-[ext_resource path="res://addons/godot-line3d/Trail3D/Trail3D.gd" type="Script" id=1]
-[ext_resource path="res://addons/godot-line3d/Line3D/shaders/line_glow.shader" type="Shader" id=2]
+[ext_resource path="res://addons/godot-polyliner/Trail3D/Trail3D.gd" type="Script" id=1]
+[ext_resource path="res://addons/godot-polyliner/Line3D/shaders/line_glow.shader" type="Shader" id=2]
 [ext_resource path="res://anim/Material.material" type="Material" id=3]
 [ext_resource path="res://anim/Material_002.material" type="Material" id=4]
 

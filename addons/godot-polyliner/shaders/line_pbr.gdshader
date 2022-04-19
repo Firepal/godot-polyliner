@@ -14,7 +14,7 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	}
 	
 	float is_end = 0.5-uv.x;
-	is_end = float(abs(is_end) > 0.4999) * -sign(is_end);
+	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
 	vec3 rounder = vec3(0.0); 
 	if (rounded) { 
 		rounder = is_end * normalize(cross(perp,dir_to_cam));

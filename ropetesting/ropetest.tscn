@@ -1,11 +1,12 @@
-[gd_scene load_steps=21 format=2]
+[gd_scene load_steps=29 format=2]
 
-[ext_resource path="res://addons/godot-line3d/Line3D/shaders/line_neon.shader" type="Shader" id=1]
+[ext_resource path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" type="Script" id=1]
 [ext_resource path="res://ropetesting/ropetest.gd" type="Script" id=2]
-[ext_resource path="res://addons/godot-line3d/Line3D/Line3D.gd" type="Script" id=3]
-[ext_resource path="res://addons/godot-line3d/shaders/line_glow.gdshader" type="Shader" id=4]
-[ext_resource path="res://addons/godot-line3d/Trail3D/Trail3D.gd" type="Script" id=6]
-[ext_resource path="res://addons/godot-line3d/shaders/swoosh.gdshader" type="Shader" id=7]
+[ext_resource path="res://addons/godot-polyliner/Line3D/Line3D.gd" type="Script" id=3]
+[ext_resource path="res://addons/godot-polyliner/shaders/line_glow.gdshader" type="Shader" id=4]
+[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_chain.gdshader" type="Shader" id=5]
+[ext_resource path="res://addons/godot-polyliner/Trail3D/Trail3D.gd" type="Script" id=6]
+[ext_resource path="res://addons/godot-polyliner/shaders/swoosh.gdshader" type="Shader" id=7]
 
 [sub_resource type="ProceduralSky" id=1]
 sky_top_color = Color( 0.219608, 0.219608, 0.219608, 1 )
@@ -25,17 +26,190 @@ extents = Vector3( 1, 0.4, 1 )
 
 [sub_resource type="BoxShape" id=11]
 resource_local_to_scene = true
-extents = Vector3( 0.3, 0.3, 0.3 )
+extents = Vector3( 0.5, 0.5, 0.5 )
 
-[sub_resource type="ShaderMaterial" id=12]
-shader = ExtResource( 1 )
-shader_param/line_width = 0.1
-shader_param/edge_pos = 0.9
-shader_param/edge_softness = 0.9
-shader_param/edge_diminish = 0.9
+[sub_resource type="SpatialMaterial" id=34]
+
+[sub_resource type="CubeMesh" id=35]
+size = Vector3( 1, 1, 1 )
+
+[sub_resource type="Shader" id=32]
+code = "shader_type spatial;
+render_mode skip_vertex_transform;
+
+// \\\"tangent-facing\\\" code and \\\"rounded end\\\" code was removed
+// for this particular shader
+
+uniform float line_width = 0.05;
+float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
+					inout vec3 normal, inout vec3 tangent){
+	vec3 dir_to_next_point = normal;
+	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
+	
+	float is_end = 0.5-uv.x;
+	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
+	
+	float side = sign(float(uv.y > 0.5)-0.5);
+	vertex += (perp*side) * width;
+	
+	tangent = perp;
+	normal = cross(perp,dir_to_next_point);
+	
+	return is_end;
+}
+
+varying mat3 TBN;
+varying vec3 eye_dir;
+varying float is_end;
+void vertex(){
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	
+	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV2,NORMAL,TANGENT);
+	
+	// TODO: Why does this make TBN work,
+	// while it breaks normal mapping?
+	BINORMAL = TANGENT;
+	TANGENT = cross(BINORMAL,NORMAL);
+	
+	TBN = mat3(
+		TANGENT,
+		BINORMAL,
+		NORMAL
+	);
+	
+	eye_dir = normalize(VERTEX) * TBN;
+}
+
+mat3 rotation3dX(float angle) {
+	float s = sin(angle);
+	float c = cos(angle);
+
+	return mat3(
+		vec3(1.0, 0.0, 0.0),
+		vec3(0.0, c, s),
+		vec3(0.0, -s, c)
+	);
+}
+
+float sdCylinder( vec3 p, float c ){
+	return length(p.yz)-c;
+}
+
+float scene(vec3 p){
+	p = p*rotation3dX(p.x*3.1415);
+	float o1 = sdCylinder(p - vec3(0.0,-0.2,0.0),0.2);
+	float o2 = sdCylinder(p - vec3(0.0,0.1,0.2),0.2);
+	float o3 = sdCylinder(p - vec3(0.0,0.1,-0.2),0.2);
+	
+	float rope = min(o1,min(o2,o3));
+	
+	return rope;
+}
+
+vec3 getNormal( in vec3 p )
+{
+    const float h = 0.0001;
+    const vec2 k = vec2(1,-1);
+    return normalize( k.xyy*scene( p + k.xyy*h ) + 
+                      k.yyx*scene( p + k.yyx*h ) + 
+                      k.yxy*scene( p + k.yxy*h ) + 
+                      k.xxx*scene( p + k.xxx*h ) );
+}
+
+float raymarch(vec3 ro, vec3 rd){
+	float total_dist = 0.0;
+	
+	for(int i=0;i<60;i++){
+		// culling below 3.0 is excessive
+		// and even more visible at grazing angles
+		if (total_dist > 3.0) { break; }
+		
+		vec3 ray = ro + (rd * total_dist);
+		
+		float dist = scene(ray);
+		
+		if (dist < 0.005){
+			return total_dist;
+		}
+		
+		total_dist += dist;
+	}
+	
+	return -1.0;
+}
+
+vec2 hash22(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
+	p3 += dot(p3, p3.yzx+33.33);
+	return fract((p3.xx+p3.yz)*p3.zy);
+}
+float ao(vec3 p, vec3 n, vec2 fragcoord)
+{
+	vec3 t = normalize(cross(n,vec3(0.0,1.0,0.0)));
+	vec3 b = normalize(cross(t,n));
+	
+	float inv_t = 1.0/10.0;
+	
+	float occ = 0.0;
+	for (int i=0;i<10;i++)
+	{
+		vec2  aa = ( hash22(fragcoord+TIME*float(i+1)) );
+		float ra = sqrt(aa.y);
+		float rx = ra*cos(6.2831*aa.x); 
+		float ry = ra*sin(6.2831*aa.x);
+		float rz = sqrt( 1.0-aa.y );
+		vec3  dir = vec3( rx*t + ry*b + rz*n );
+		vec3 no;
+		float hit = raymarch(p+dir*0.1,dir);
+		if (hit < 0.0)
+			occ += inv_t;
+	}
+	
+	return occ;
+}
+
+uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.5),1.0);
+uniform float twirl_aspect = 0.5;
+
+void fragment(){
+	// We can't do raycasts with objects
+	// that intersect Z =< 0.0 in tangent-space; it gets clipped.
+	// So the rope is actually below the line surface.
+	vec3 ro = vec3(UV,0.45);
+	vec3 rd = eye_dir;
+	
+	ro.x *= twirl_aspect / line_width;
+	
+	// fix weird offset
+	ro.y += -0.5;
+	
+	// fit the model roughly to line mesh bounds
+	ro.xy *= 0.8;
+	
+	float hit = raymarch(ro, rd);
+	if (hit < 0.0) { discard; }
+	
+	vec3 hit_pos = ro + rd * hit;
+	vec3 hit_normal = getNormal(hit_pos);
+	NORMAL = TBN * hit_normal;
+	
+	float ao = ao(hit_pos, hit_normal, FRAGCOORD.xy);
+	ALBEDO = color.rgb * ao;
+	ROUGHNESS = 0.5;
+}"
+
+[sub_resource type="ShaderMaterial" id=31]
+shader = SubResource( 32 )
+shader_param/line_width = 0.2
+shader_param/color = Color( 1, 1, 0.5, 1 )
+shader_param/twirl_aspect = 5.0
 
 [sub_resource type="SphereShape" id=10]
-radius = 0.1
+
+[sub_resource type="SphereMesh" id=33]
 
 [sub_resource type="Shader" id=28]
 code = "shader_type spatial;
@@ -203,16 +377,49 @@ shader = SubResource( 28 )
 shader = ExtResource( 7 )
 shader_param/line_width = 1.0
 shader_param/tangent_facing = true
-shader_param/offset = 1.5
+shader_param/tangent_offset = 0.5
 shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/alpha_curve = 0.5
 
 [sub_resource type="ShaderMaterial" id=29]
 shader = ExtResource( 4 )
 shader_param/tangent_facing = false
 shader_param/rounded = true
 shader_param/line_width = 0.0
-shader_param/glow_size = 0.366
+shader_param/glow_width = 0.4
 shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/curve = 0.2
+
+[sub_resource type="ShaderMaterial" id=37]
+shader = ExtResource( 5 )
+shader_param/line_width = 0.191
+shader_param/angle = 1.124
+shader_param/link_radius = 0.15
+shader_param/link_thickness = 0.05
+shader_param/repeat_size = 1.0
+shader_param/repeat_size_b = 0.05
+shader_param/roughness = 0.1
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/twirl_aspect = 2.0
+
+[sub_resource type="Curve3D" id=38]
+bake_interval = 0.02
+_data = {
+"points": PoolVector3Array( -0.794917, -1.59787, -1.79256, 0.794917, 1.59787, 1.79256, 0.141981, 1.12793, 0.211593, -0.811577, 1.33557, -0.00136006, 0.811577, -1.33557, 0.00136006, 2.83198, 0.133918, 2.42691 ),
+"tilts": PoolRealArray( 0, 0 )
+}
+
+[sub_resource type="ShaderMaterial" id=39]
+shader = ExtResource( 5 )
+shader_param/line_width = 0.05
+shader_param/angle = 0.0
+shader_param/link_radius = 0.15
+shader_param/link_thickness = 0.05
+shader_param/repeat_size = 1.0
+shader_param/repeat_size_b = 0.1
+shader_param/roughness = 0.293
+shader_param/color = Color( 1, 1, 0.368627, 1 )
+shader_param/twirl_aspect = 0.5
 
 [node name="Spatial" type="Spatial"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0148439, 0, -0.0798446 )
@@ -223,17 +430,15 @@ environment = SubResource( 2 )
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
 transform = Transform( 0.707107, 0.5, 0.5, 0, -0.707107, 0.707107, 0.707107, -0.5, -0.5, 0, 4.37562, 0 )
 shadow_enabled = true
-directional_shadow_mode = 1
-directional_shadow_split_1 = 0.224
 directional_shadow_normal_bias = 0.2
 directional_shadow_bias_split_scale = 1.0
-directional_shadow_max_distance = 20.0
+directional_shadow_max_distance = 40.0
 
 [node name="Camera" type="Camera" parent="."]
-transform = Transform( 0.880701, 0.245057, -0.405356, 0, 0.855771, 0.517355, 0.473673, -0.455635, 0.753678, -4.9645, 9.35005, 5.88982 )
+transform = Transform( -0.967383, -0.0784649, 0.24086, 0, 0.950819, 0.309747, -0.253319, 0.299644, -0.919806, 5.58673, 9.35005, -7.23411 )
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
-transform = Transform( 9, 0, 0, 0, 1, 0, 0, 0, 9, -0.707202, 1.51394, 0.0481925 )
+transform = Transform( 9, 0, 0, 0, 1, 0, 0, 0, 9, -0.721719, 1.50942, 0.0287716 )
 mesh = SubResource( 3 )
 material/0 = null
 
@@ -243,36 +448,53 @@ material/0 = null
 shape = SubResource( 9 )
 
 [node name="RigidBody" type="RigidBody" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -4.59139, 9.11517, -0.591243 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -4.59139, 11.7783, -0.591243 )
 mode = 3
 can_sleep = false
 script = ExtResource( 2 )
 end_segment = NodePath("../RigidBody2")
-segment_count = 20
+segment_count = 27
+segment_mass = 50.0
+stiff_multiplier = 15.0
+damp = 1.0
 
 [node name="CollisionShape" type="CollisionShape" parent="RigidBody"]
 shape = SubResource( 11 )
 disabled = true
 
 [node name="MeshInstance" type="MeshInstance" parent="RigidBody"]
-visible = false
-material_override = SubResource( 12 )
+material_override = SubResource( 34 )
+mesh = SubResource( 35 )
+material/0 = null
+
+[node name="Line3D" type="Spatial" parent="RigidBody"]
+script = ExtResource( 3 )
+material = SubResource( 31 )
+points = PoolVector3Array( 0, 0, 0, 1.074, 0, 0 )
 
 [node name="RigidBody2" type="RigidBody" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 8.10631, 8.19932, 0 )
-mode = 3
+transform = Transform( 0.942694, 0.333659, 0, -0.333659, 0.942694, 0, 0, 0, 1, 5.26959, 8.46232, 5.28869 )
+mode = 1
+can_sleep = false
 
 [node name="CollisionShape" type="CollisionShape" parent="RigidBody2"]
 shape = SubResource( 10 )
 
+[node name="MeshInstance" type="MeshInstance" parent="RigidBody2"]
+visible = false
+mesh = SubResource( 33 )
+material/0 = null
+
 [node name="MeshInstance2" type="MeshInstance" parent="."]
 transform = Transform( -3.29765e-08, -0.583896, 0.811829, 1.50819e-07, 0.811829, 0.583896, -1, 1.41694e-07, 6.12914e-08, -5.35959, 9.02738, -0.218791 )
+visible = false
 material_override = SubResource( 18 )
 mesh = SubResource( 22 )
 material/0 = SubResource( 18 )
 
 [node name="RigidBody3" type="RigidBody" parent="."]
 transform = Transform( 0.2, 0, 0, 0, 1, 0, 0, 0, 3, -1.50901, 12.1068, 0 )
+mode = 1
 mass = 500.0
 can_sleep = false
 
@@ -291,7 +513,7 @@ shadow_enabled = true
 omni_range = 12.6026
 
 [node name="Trail3D" type="Spatial" parent="."]
-transform = Transform( 0.636423, -0.771141, 0.0173914, 0.750486, 0.613855, -0.244843, 0.178133, 0.168876, 0.969406, -1.27924, 4.73535, -5.32034 )
+transform = Transform( -0.321541, -0.946734, 0.0173914, 0.916678, -0.31583, -0.244843, 0.237294, -0.0627848, 0.969406, 0.154614, 3.80043, -5.5822 )
 script = ExtResource( 6 )
 max_points = 23
 damping = 0.493
@@ -299,6 +521,19 @@ material = SubResource( 27 )
 
 [node name="Line3D" type="Spatial" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.27101, 0 )
+visible = false
 script = ExtResource( 3 )
 material = SubResource( 29 )
 points = PoolVector3Array( 0, 0, 0, 1.341, 0, 0 )
+
+[node name="Line3D2" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 3.72529e-09, 5.64986, 0 )
+script = ExtResource( 3 )
+material = SubResource( 37 )
+points = PoolVector3Array( 0, 0, 0, 4, 0, 0 )
+
+[node name="LinePath3D" type="Path" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.226341, 6.81151, -0.413063 )
+curve = SubResource( 38 )
+script = ExtResource( 1 )
+material = SubResource( 39 )

@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=2]
+
+[ext_resource path="res://addons/godot-polyliner/shaders/line_pbr.gdshader" type="Shader" id=1]
+
+[resource]
+shader = ExtResource( 1 )
+shader_param/line_width = 0.1
+shader_param/tangent_facing = false
+shader_param/rounded = false
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/metallic = 0.0
+shader_param/specular = 0.5
+shader_param/roughness = 0.5

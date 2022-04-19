@@ -1,7 +1,4 @@
-[gd_resource type="Shader" format=2]
-
-[resource]
-code = "shader_type spatial;
+shader_type spatial;
 render_mode skip_vertex_transform;
 
 // \"tangent-facing\" code and \"rounded end\" code was removed
@@ -14,7 +11,7 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
 	
 	float is_end = 0.5-uv.x;
-	is_end = float(abs(is_end) > 0.4999) * -sign(is_end);
+	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
 	
 	float side = sign(float(uv.y > 0.5)-0.5);
 	vertex += (perp*side) * width;
@@ -32,7 +29,6 @@ void vertex(){
 	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
-	BINORMAL = mat3(MODELVIEW_MATRIX) * BINORMAL;
 	
 	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV2,NORMAL,TANGENT);
 	
@@ -168,4 +164,3 @@ void fragment(){
 	ALBEDO = color.rgb * ao;
 	ROUGHNESS = 0.5;
 }
-"

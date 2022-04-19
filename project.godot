@@ -12,12 +12,12 @@ _global_script_classes=[ {
 "base": "Reference",
 "class": "ImmediateSurface",
 "language": "GDScript",
-"path": "res://addons/godot-line3d/LineGen3D/ImmediateSurface.gd"
+"path": "res://addons/godot-polyliner/LineGen3D/ImmediateSurface.gd"
 }, {
 "base": "Resource",
 "class": "LineGen3D",
 "language": "GDScript",
-"path": "res://addons/godot-line3d/LineGen3D/LineGen3D.gd"
+"path": "res://addons/godot-polyliner/LineGen3D/LineGen3D.gd"
 }, {
 "base": "RigidBody",
 "class": "Rope3D",
@@ -32,13 +32,13 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Line3D"
+config/name="Polyliner"
 run/main_scene="res://Spatial.tscn"
 config/icon="res://icon.png"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/godot-line3d/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/godot-polyliner/plugin.cfg" )
 
 [physics]
 

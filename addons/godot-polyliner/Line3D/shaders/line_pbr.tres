@@ -48,7 +48,7 @@ void fragment(){
 	NORMALMAP.x = UV.y;
 	NORMALMAP.y = end_sign;
 	
-//	ALBEDO = vec3(end_sign);
+	ALBEDO = vec3(albedo_color.rgb);
 	ALPHA = 1.0-length(vec2(is_end*0.5,UV.y-0.5));
 	ALPHA_SCISSOR = step(0.01,is_end)*0.5;
 	

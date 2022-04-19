@@ -1,13 +1,13 @@
-[gd_scene load_steps=43 format=2]
+[gd_scene load_steps=44 format=2]
 
-[ext_resource path="res://addons/godot-line3d/Line3D/LinePath3D.gd" type="Script" id=1]
-[ext_resource path="res://addons/godot-line3d/Trail3D/Trail3D.gd" type="Script" id=2]
-[ext_resource path="res://addons/godot-line3d/shaders/parallax/rope_raymarch.tres" type="Shader" id=3]
-[ext_resource path="res://addons/godot-line3d/Line3D/shaders/line_neon.shader" type="Shader" id=4]
-[ext_resource path="res://addons/godot-line3d/Line3D/shaders/line_glowround.tres" type="Shader" id=5]
+[ext_resource path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" type="Script" id=1]
+[ext_resource path="res://addons/godot-polyliner/Trail3D/Trail3D.gd" type="Script" id=2]
+[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_rope.gdshader" type="Shader" id=3]
+[ext_resource path="res://addons/godot-polyliner/Line3D/shaders/line_neon.shader" type="Shader" id=4]
+[ext_resource path="res://addons/godot-polyliner/shaders/line_glow.gdshader" type="Shader" id=5]
 [ext_resource path="res://default_env.tres" type="Environment" id=6]
-[ext_resource path="res://addons/godot-line3d/shaders/swoosh.gdshader" type="Shader" id=7]
-[ext_resource path="res://addons/godot-line3d/shaders/line_pbr.gdshader" type="Shader" id=8]
+[ext_resource path="res://addons/godot-polyliner/shaders/swoosh.gdshader" type="Shader" id=7]
+[ext_resource path="res://addons/godot-polyliner/shaders/line_pbr.gdshader" type="Shader" id=8]
 
 [sub_resource type="GDScript" id=1]
 script/source = "tool
@@ -60,18 +60,19 @@ shader_param/specular = 0.5
 shader_param/roughness = 0.5
 
 [sub_resource type="Curve3D" id=8]
-bake_interval = 0.23
+bake_interval = 0.22
 _data = {
-"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, 0.145616, 0.365147, -0.438421, 0.28845, 0.662706, -0.660572, -0.28845, -0.662706, 0.660572, -0.366357, 0.460928, 0.56549 ),
+"points": PoolVector3Array( 0.185279, -0.620741, -0.265847, -0.185279, 0.620741, 0.265847, 0.164175, 0.564023, -0.446867, 0.176258, 0.985339, -0.464011, -0.176258, -0.985339, 0.464011, -0.435987, 0.312722, 1.09197 ),
 "tilts": PoolRealArray( 0, 0 )
 }
 
 [sub_resource type="ShaderMaterial" id=9]
 shader = ExtResource( 7 )
-shader_param/line_width = 0.114
+shader_param/line_width = 0.043
 shader_param/tangent_facing = false
-shader_param/offset = 1.0
-shader_param/color = Color( 0.643137, 0.643137, 0.643137, 1 )
+shader_param/tangent_offset = 0.0
+shader_param/color = Color( 1, 0, 0, 1 )
+shader_param/alpha_curve = 0.5
 
 [sub_resource type="Curve3D" id=10]
 bake_interval = 0.1
@@ -126,16 +127,18 @@ shader_param/rounded = true
 [sub_resource type="Curve3D" id=32]
 bake_interval = 0.13
 _data = {
-"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, -0.19442, 0.0866818, -1.76063, 2.33724, -1.66999, -3.70093, -2.33724, 1.66999, 3.70093, -0.721755, 2.50279, -5.27716, 0.767976, 0.0369697, -0.758669, -0.767976, -0.0369697, 0.758669, -0.0607967, 0.469147, 0.81765, -0.0909576, -0.0492868, 2.82991, 0.0909576, 0.0492868, -2.82991, -2.38183, 4.45401, -0.710008, 0.0524731, 1.97994, -1.77644, -0.0524731, -1.97994, 1.77644, -0.469312, 2.28247, -3.2984, 0.282413, -0.803169, -1.42656, -0.282413, 0.803169, 1.42656, -2.99905, 1.07019, 1.97973, -0.153757, -0.933025, 1.1633, 0.153757, 0.933025, -1.1633, -1.23264, 4.70702, 3.64861, 1.34233, 0.87923, -0.408449, -1.34233, -0.87923, 0.408449, -2.85112, 4.89226, 1.94985 ),
+"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, -0.19442, 0.0866818, -1.76063, 2.33724, -1.66999, -3.70093, -2.33724, 1.66999, 3.70093, -0.721755, 2.50279, -5.27716, 0.767976, 0.0369697, -0.758669, -0.767976, -0.0369697, 0.758669, -0.0607967, 0.469147, 0.81765, -0.0909576, -0.0492868, 2.82991, 0.0909576, 0.0492868, -2.82991, -2.38183, 4.45401, -0.710008, 0.0524731, 1.97994, -1.77644, -0.0524731, -1.97994, 1.77644, -0.469312, 2.28247, -3.2984, 0.282413, -0.803169, -1.42656, -0.282413, 0.803169, 1.42656, -2.99905, 1.07019, 1.97973, -0.153757, -0.933025, 1.1633, 0.153757, 0.933025, -1.1633, -1.23264, 4.70702, 3.64861, 1.34233, 0.87923, -0.408449, -1.34233, -0.87923, 0.408449, 0, 4.89004, 1.86796 ),
 "tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0 )
 }
 
 [sub_resource type="ShaderMaterial" id=33]
 shader = ExtResource( 5 )
+shader_param/tangent_facing = false
+shader_param/rounded = true
 shader_param/line_width = 0.0
-shader_param/line_softness = 0.1
-shader_param/glow_width = 0.4
+shader_param/glow_width = 0.326
 shader_param/color = Color( 0, 0.396078, 0.956863, 1 )
+shader_param/curve = 0.2
 
 [sub_resource type="Curve3D" id=12]
 bake_interval = 0.09
@@ -146,10 +149,10 @@ _data = {
 
 [sub_resource type="ShaderMaterial" id=13]
 shader = ExtResource( 4 )
-shader_param/line_width = 0.022
-shader_param/edge_pos = 0.956
-shader_param/edge_softness = 0.014
-shader_param/edge_diminish = 0.349
+shader_param/line_width = 0.076
+shader_param/edge_pos = 0.953
+shader_param/edge_softness = 0.017
+shader_param/edge_diminish = 0.31
 
 [sub_resource type="Curve3D" id=14]
 bake_interval = 0.23
@@ -285,18 +288,26 @@ _data = {
 
 [sub_resource type="ShaderMaterial" id=38]
 shader = ExtResource( 8 )
-shader_param/line_width = 0.03
+shader_param/line_width = 0.026
 shader_param/tangent_facing = false
-shader_param/rounded = true
+shader_param/rounded = false
 shader_param/color = Color( 0.443137, 0.427451, 0.427451, 1 )
 shader_param/metallic = 0.0
 shader_param/specular = 0.5
-shader_param/roughness = 0.5
+shader_param/roughness = 0.401
+
+[sub_resource type="ShaderMaterial" id=39]
+shader = ExtResource( 7 )
+shader_param/line_width = 0.4
+shader_param/tangent_facing = true
+shader_param/tangent_offset = 0.5
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/alpha_curve = 0.5
 
 [node name="Spatial" type="Spatial"]
 
 [node name="Spatial2" type="Spatial" parent="."]
-transform = Transform( -0.913485, 0, 0.406845, 0, 0.999999, 0, -0.40684, 0, -0.913495, 0.306548, 0.59, 2.362 )
+transform = Transform( 0.734507, 0, -0.678587, 0, 0.999999, 0, 0.678579, 0, 0.734516, -0.388209, 0.59, 2.362 )
 script = SubResource( 1 )
 mul = 1.59
 
@@ -324,9 +335,11 @@ script = ExtResource( 1 )
 material = SubResource( 7 )
 
 [node name="wireframe" type="Path" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.717783, 0.126707, 3.23876 )
+transform = Transform( 0.991497, 0, 0.130128, 0, 1, 0, -0.130128, 0, 0.991497, -0.638963, 0.205764, 3.83932 )
 curve = SubResource( 8 )
 script = ExtResource( 1 )
+render_mode = 1
+uv_size = 1.022
 material = SubResource( 9 )
 
 [node name="rope" type="Path" parent="."]
@@ -337,14 +350,13 @@ script = ExtResource( 1 )
 material = SubResource( 11 )
 
 [node name="rope2" type="Path" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.189557, 0.548084, 0.487239 )
+transform = Transform( 0, 0, 0, 0, 1, 0, 0, 0, 1, -0.189557, 0.548084, 0.487239 )
 curve = SubResource( 32 )
 script = ExtResource( 1 )
 material = SubResource( 33 )
 
 [node name="Spatial" type="Spatial" parent="."]
 transform = Transform( -2.18557e-08, 0, -0.5, 0, 0.5, 0, 0.5, 0, -2.18557e-08, 1.39, 0.857196, 4.73432 )
-visible = false
 
 [node name="Path3" type="Path" parent="Spatial"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0142488, 0.272145, -0.678472 )
@@ -403,7 +415,7 @@ mesh = SubResource( 19 )
 material/0 = SubResource( 22 )
 
 [node name="MeshInstance4" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0158579, -1.19209e-07, 0.0118755 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0214004, -0.0135396, 0.0126456 )
 mesh = SubResource( 19 )
 material/0 = SubResource( 22 )
 
@@ -438,7 +450,7 @@ curve = SubResource( 37 )
 script = ExtResource( 1 )
 material = SubResource( 38 )
 
-[node name="OmniLight" type="OmniLight" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.28449, 0 )
-light_energy = 2.0
-omni_range = 20.0
+[node name="Trail3D" type="Spatial" parent="."]
+transform = Transform( 0.0465687, -0.818761, -0.572242, -0.986043, 0.0539839, -0.157484, 0.159833, 0.57159, -0.804821, -0.545116, 1.10295, 1.43626 )
+script = ExtResource( 2 )
+material = SubResource( 39 )

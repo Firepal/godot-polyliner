@@ -27,7 +27,7 @@ func draw_from_xforms_strip(p : Array = Array(),
 	var ps = p.size()
 	if ps <= 1: return ArrayMesh.new()
 	
-	var inv_ps = 1.0/(ps+1)
+	var inv_ps = 1.0/(ps-1)
 	
 	for i in range(ps+2):
 		var real_i = i
@@ -46,7 +46,7 @@ func draw_from_xforms_strip(p : Array = Array(),
 			var p1_tangent = Plane(tan_vector,0.0)
 			
 			# TODO: calculate total_length
-			var uv2 = 1.0-(inv_ps*real_i)
+			var uv2 = 1.0-(inv_ps*(real_i-1))
 			var uv1 = uv2
 			
 			_sf.add_tangent( p1_tangent )
@@ -424,7 +424,7 @@ func draw_from_points_strip(p : PoolVector3Array = PoolVector3Array(),
 #	print(acc)
 #	acc = sqrt(acc)
 	
-	var inv_ps = 1.0/(ps+1)
+	var inv_ps = 1.0/(ps-1)
 	
 	for i in range(ps+2):
 		var real_i = i
@@ -443,7 +443,8 @@ func draw_from_points_strip(p : PoolVector3Array = PoolVector3Array(),
 #			print(last_miter != null, " ", i)
 			
 			# TODO: calculate total_length
-			var uv2 = 1.0-(inv_ps*real_i)
+			var uv2 = 1.0-(inv_ps*(real_i-1))
+#			print(uv2, " ", i)
 			var uv1 = uv2 * line_length
 			
 			
