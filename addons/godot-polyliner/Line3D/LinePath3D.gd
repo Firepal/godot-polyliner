@@ -69,7 +69,7 @@ func set_uv_size(value):
 
 func set_material(mat):
 	if mat == null:
-		material = load("res://addons/godot-line3d/default_line_material.tres").duplicate(true)
+		material = load("res://addons/godot-polyliner/default_line_material.tres").duplicate(true)
 	if mat is ShaderMaterial:
 		material = mat
 		redraw()

@@ -1,20 +1,6 @@
 tool
 extends Spatial
 
-enum Renderer {
-	STATIC, # Use SurfaceTool for rendering
-	######################  IMMEDIATE IS UNIMPLEMENTED IN LineGen3D
-	IMMEDIATE # Use ImmediateGeoemtry
-}
-enum UVMode {
-	# UV size never changes over curve length
-	# Useful to keep UV in [0,1] range for float precision
-	STRETCH,
-	# UV scales with curve length
-	# Good for applying repeated textures
-	REPEAT
-}
-export(UVMode) var uv_mode = UVMode.STRETCH setget set_uv_mode
 export(float,0.0,100.0) var uv_size = 1.0 setget set_uv_size
 export(Material) var material = null setget set_material
 
@@ -48,10 +34,6 @@ func set_point_position(i : int, v : Vector3):
 	redraw()
 
 
-func set_uv_mode(value):
-	uv_mode = value
-	redraw()
-
 func set_uv_size(value):
 	uv_size = value
 	redraw()
@@ -59,7 +41,7 @@ func set_uv_size(value):
 var _mesh_instance = MeshInstance.new()
 func set_material(mat):
 	if mat == null:
-		material = load("res://addons/godot-line3d/default_line_material.tres").duplicate(true)
+		material = load("res://addons/godot-polyliner/default_line_material.tres").duplicate(true)
 	if mat is ShaderMaterial:
 		material = mat
 	_mesh_instance.material_override = material
@@ -69,7 +51,6 @@ func set_material(mat):
 func _enter_tree():
 	add_child(_mesh_instance)
 	
-	set_uv_mode(uv_mode)
 	set_uv_size(uv_size)
 	set_material(material)
 	

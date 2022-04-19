@@ -14,12 +14,11 @@ func _process(delta):
 
 const MAX_SAMPLES = 1000
 func _cap_do(delta):
-	var frames = capture.get_frames_available()*0.2
+	var frames = capture.get_frames_available()*0.5
 	var buf = capture.get_buffer(frames)
 	if not buf.empty():
 		var p = Vector3()
 		for i in range( min(buf.size(),MAX_SAMPLES) ):
-			if i % 2 == 0:
 				var smpl = buf[i]
 				var t = Vector3(smpl.x,smpl.y,0.0)*3.0
 				t = t.rotated(Vector3.FORWARD,3.1415*0.75)
