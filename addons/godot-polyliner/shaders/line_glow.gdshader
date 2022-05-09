@@ -39,10 +39,12 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	float lww = line_width+glow_width;
-	hider = smoothstep(1.0,0.8,abs(dot(NORMAL,normalize(VERTEX))));
-	is_end = line_process(lww,VERTEX,normalize(VERTEX),UV2,NORMAL,TANGENT);
+	hider = smoothstep(0.995,0.99,abs(dot(NORMAL,normalize(VERTEX))));
+	is_end = line_process(lww,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
 	
 	lw = max(line_width,0.001)/max(line_width+glow_width,0.001);
+	
+	UV.x *= UV2.x;
 }
 
 float getDistToLineCenter(vec2 uv) {
@@ -58,5 +60,6 @@ void fragment(){
 	roundededge = 1.0-pow(roundededge,curve);
 	
 	ALBEDO = mix(color.rgb,vec3(1.0),roundededge);
-	ALPHA = roundededge * hider;
+	ALPHA = roundededge;
+//	ALPHA *= hider;
 }

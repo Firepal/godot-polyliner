@@ -1,7 +1,7 @@
 shader_type spatial;
 render_mode skip_vertex_transform, cull_disabled;
 render_mode unshaded;
-render_mode blend_add;
+//render_mode blend_add;
 
 // Shader for swooshy sword effects.
 // Only really makes sense to use this
@@ -32,7 +32,7 @@ void vertex() {
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	float err = line_process(line_width,VERTEX,normalize(VERTEX),UV2,
+	float err = line_process(line_width,VERTEX,normalize(VERTEX),UV,
 							NORMAL,TANGENT);
 	VERTEX += TANGENT * tangent_offset;
 }
@@ -41,7 +41,7 @@ uniform vec4 color : hint_color = vec4(vec3(1.0),1.0);
 uniform float alpha_curve : hint_range(0.0,1.0,0.005) = 0.5;
 void fragment(){
 	NORMAL = FRONT_FACING ? NORMAL : -NORMAL;
-	float thing = smoothstep(1.014,0.0,UV2.x);
+	float thing = smoothstep(1.0,0.0,UV.x);
 	thing = 1.0-pow(thing,alpha_curve);
 	ALPHA = thing;
 	ALBEDO = mix(color.rgb,vec3(1.0),thing);

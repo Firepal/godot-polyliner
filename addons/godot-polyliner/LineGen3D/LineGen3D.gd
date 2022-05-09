@@ -46,21 +46,21 @@ func draw_from_xforms_strip(p : Array = Array(),
 			var p1_tangent = Plane(tan_vector,0.0)
 			
 			# TODO: calculate total_length
-			var uv2 = 1.0-(inv_ps*(real_i-1))
-			var uv1 = uv2
+			var uv1x = 1.0-(inv_ps*(real_i-1))
+			var extras_uv2 = Vector2(1.0, inv_ps)
 			
 			_sf.add_tangent( p1_tangent )
 			_sf.add_normal( last )
 			
-			_sf.add_uv( Vector2(uv1,1.0) )
-			_sf.add_uv2( Vector2(uv2,1.0) )
+			_sf.add_uv( Vector2(uv1x,1.0) )
+			_sf.add_uv2( extras_uv2 )
 			_sf.add_vertex( p1.origin )
 			
 			_sf.add_tangent( p1_tangent )
 			_sf.add_normal( last )
 			
-			_sf.add_uv( Vector2(uv1,0.0) )
-			_sf.add_uv2( Vector2(uv2,0.0) )
+			_sf.add_uv( Vector2(uv1x,0.0) )
+			_sf.add_uv2( extras_uv2 )
 			_sf.add_vertex( p1.origin )
 			
 	
@@ -181,167 +181,7 @@ func draw_from_xforms_indexed_olreliable(p : Array = Array(),
 			verts += 1
 	return _sf.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT-Mesh.ARRAY_COMPRESS_COLOR)
 
-func draw_from_points(p : PoolVector3Array = PoolVector3Array(),
-						total_length : float = 1.0) -> ArrayMesh:
-	if p.empty():
-#		push_warning("p is empty, mesh will not be updated")
-		return ArrayMesh.new()
-	assert(p is PoolVector3Array, "p must be PoolVector3Array")
-	var uvs = total_length
-	
-	_sf.begin(render_mode)
-	
-	var last = null
-	var ps = p.size()-2
-	
-	for i in range(ps):
-#		if i > 1: i -= 1
-#		if i > ps-2: i -= 1
-		var p1 = p[i]
-		var p2 = p[i+1]
-		var p3 = p[i+2]
-		
-		if p1 != null and p2 != null:
-			var p1pc = p2-p1
-			var p2pc = p1pc
-			if p3 != null:
-				p2pc = p3-p1
-			
-			if last != null: p1pc = last
-			
-			var p1c = Color(p1pc.x,p1pc.y,p1pc.z)
-			var p2c = Color(p2pc.x,p2pc.y,p2pc.z)
-			
-			var uv1 = (float(ps-i)/ps)*uvs
-			var uv2 = (float(ps-(i+1))/ps)*uvs
-			
-			_sf.add_color( p1c )
-			_sf.add_uv( Vector2(uv1,1.0) )
-			_sf.add_vertex( p1 )
-			_sf.add_uv( Vector2(uv1,0.0) )
-			_sf.add_vertex( p1 )
-			
-			_sf.add_color( p2c )
-			_sf.add_uv( Vector2(uv2,1.0) )
-			_sf.add_vertex( p2 )
-			
-			
-			_sf.add_color( p1c )
-			_sf.add_uv( Vector2(uv1,0.0) )
-			_sf.add_vertex( p1 )
-			
-			_sf.add_color( p2c )
-			_sf.add_uv( Vector2(uv2,0.0) )
-			_sf.add_vertex( p2 )
-			_sf.add_uv( Vector2(uv2,1.0) )
-			_sf.add_vertex( p2 )
-			
-			last = p2pc
-	
-	return _sf.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT-Mesh.ARRAY_COMPRESS_COLOR)
-
-
-# Bafflingly and for no discernible reason, this is very fast.
-# Faster than draw_from_points_strip
-func draw_from_points_indexed(p : Array = [],
-						total_length : float = 1.0) -> ArrayMesh:
-	_sf.begin(render_mode)
-	
-	var last = null
-	var last_miter = null
-	var verts = 0
-	
-	var ps = p.size()
-	
-	# Points array size with padding at each end
-	var psx = ps + 2
-	
-	var vi = 0
-	if ps < 2: return ArrayMesh.new()
-	
-	var inv_ps = 1.0/(ps-1)
-	var inv_psx = 1.0/(psx-1)
-	var in_gap = false
-	
-	var vi_ofs = 0
-	for i in range(psx):
-		var real_i = i
-		if i > 0: i -= 1
-		# If this point is the real last point in the mesh,
-		if i > psx-3:
-			i -= 1
-			# Shift index forward
-			vi += 1
-#		print( vi, " ", real_i )
-		var p1 = p[i]
-		
-		if p1 != null:
-			var set_miter = null
-			var p2 = null
-			# If next point is available, save direction to it in last
-			if i < ps-1:
-				p2 = p[i+1]
-				if p2 != null: 
-					last = p2-p1
-					
-					# While we're here, let's check if we can
-					# store direction to second next point
-					
-					if i < ps-2:
-						var p3 = p[i+2]
-						
-						if p3 != null:
-							set_miter = p3-p1
-			
-			# The dir to be stored in vertex color
-			var dir = last
-			var dir_never_miter = Plane(last,0.0)
-			
-			# If last_miter is set, set dir to last_miter and unset last_miter
-			
-			if last_miter != null:
-				dir = last_miter
-			
-			# Set (or unset) last_miter, we checked earlier
-			last_miter = set_miter
-			
-			
-			var p1c = Color(dir.x,dir.y,dir.z)
-			
-			var uv2 = 1.0-(inv_psx*real_i)
-			var uv1 = uv2*total_length
-			
-			_sf.add_uv( Vector2(uv1,1.0) )
-			_sf.add_uv2( Vector2(uv2,1.0) )
-			_sf.add_normal( dir )
-			_sf.add_tangent( dir_never_miter )
-			_sf.add_vertex( p1 )
-			_sf.add_uv( Vector2(uv1,0.0) )
-			_sf.add_uv2( Vector2(uv2,0.0) )
-			_sf.add_normal( dir )
-			_sf.add_tangent( dir_never_miter )
-			_sf.add_vertex( p1 )
-			
-			var overflow = i > ps-1
-			
-			if not overflow:
-				var vip = (vi+vi_ofs) * 2
-#				print("vip: ", vip)
-				_sf.add_index(vip)
-				_sf.add_index(vip + 1)
-				_sf.add_index(vip + 2)
-				
-				_sf.add_index(vip + 1)
-				_sf.add_index(vip + 3)
-				_sf.add_index(vip + 2)
-				
-				in_gap = false
-			vi += 1
-			
-			
-			
-	return _sf.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT-Mesh.ARRAY_COMPRESS_COLOR)
-
+# Experimental, do not use
 func draw_from_points_arrays(p : PoolVector3Array = PoolVector3Array(),
 						total_length : float = 1.0) -> ArrayMesh:
 	if p.empty():
@@ -443,25 +283,36 @@ func draw_from_points_strip(p : PoolVector3Array = PoolVector3Array(),
 #			print(last_miter != null, " ", i)
 			
 			# TODO: calculate total_length
-			var uv2 = 1.0-(inv_ps*(real_i-1))
-#			print(uv2, " ", i)
-			var uv1 = uv2 * line_length
+			var uv1x = 1.0-(inv_ps*(real_i-1)) 
+#			print(uv, " ", i)
+			var extras_uv2 = Vector2(line_length, inv_ps)
 			
 			
 			_sf.add_normal( dir )
 			
-			_sf.add_uv( Vector2(uv1,1.0) )
-			_sf.add_uv2( Vector2(uv2,1.0) )
+			_sf.add_uv( Vector2(uv1x,1.0) )
+			_sf.add_uv2( extras_uv2 )
 			_sf.add_vertex( p1 )
 			
 			_sf.add_normal( dir )
 			
-			_sf.add_uv( Vector2(uv1,0.0) )
-			_sf.add_uv2( Vector2(uv2,0.0) )
+			_sf.add_uv( Vector2(uv1x,0.0) )
+			_sf.add_uv2( extras_uv2 )
 			_sf.add_vertex( p1 )
 			
 			
 			if i < ps-2:
 				last_miter = p[i+2] - p1
 	
-	return _sf.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT)
+	var compress = Mesh.ARRAY_COMPRESS_DEFAULT
+	
+	# If vertex count > 1024, the method we use
+	# to have rounded caps breaks
+	# because half-float precision is not precise enough
+	
+	# We've enabled full-precision float for UV here
+	# it's a waste of bits (uses 64 bits instead of 32) but it's a quick and easy fix,
+	# and it's not as bad as using the entire vec4 COLOR buffer just to store a single float
+	compress -= Mesh.ARRAY_COMPRESS_TEX_UV
+	
+	return _sf.commit(null, compress)
