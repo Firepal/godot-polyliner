@@ -35,9 +35,14 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV2,NORMAL,TANGENT);
+	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
 	
 	BINORMAL = cross(TANGENT,NORMAL);
+	
+	float line_length = UV2.x;
+	UV2 = UV; 
+	UV2.x *= line_length;
+	
 	if (rounded) {
 		float uv_correct = is_end*line_width;
 		UV.x += uv_correct;
@@ -47,7 +52,7 @@ void vertex(){
 
 float getDistToLineCenter(vec2 uv) {
 	vec2 c = vec2(is_end*0.5,uv.y-0.5);
-	return length(c);
+	return length(c)*0.5;
 }
 
 float getDistSquaredToLineCenter(vec2 uv) {
@@ -59,10 +64,14 @@ vec2 getLineTubeNormal(vec2 uv) {
 	vec2 n = vec2(0.5);
 		n.x = uv.y;
 		if (rounded) {
-			n.y = is_end*0.5+0.5;
+			n.y = (is_end*0.5+0.5);
 		}
 	return n;
 }
+
+uniform sampler2D albedo_tex : hint_albedo;
+uniform bool tex_stretch = true;
+uniform vec2 tex_scale = vec2(1.0,1.0);
 
 uniform vec4 color : hint_color = vec4(vec3(1.0),1.0);
 uniform float metallic  : hint_range(0.0,1.0,0.005) = 0.0;
@@ -71,16 +80,24 @@ uniform float roughness : hint_range(0.0,1.0,0.005) = 0.5;
 void fragment() {
 	if (!FRONT_FACING) { NORMAL = -NORMAL; }
 	
-	if (!tangent_facing) { NORMALMAP.xy = getLineTubeNormal(UV2); }
+	if (!tangent_facing) { NORMALMAP.xy = getLineTubeNormal(UV); }
 	
 	
 	if (rounded) {
 		if (abs(is_end) > 0.0) {
-			ALPHA *= smoothstep(1.0,0.95,getDistSquaredToLineCenter(UV)*4.0);
+			ALPHA *= smoothstep(1.0,0.99,getDistToLineCenter(UV)*4.0);
 		}
 	}
 	
-	ALBEDO = color.rgb;
+	vec2 uv_alb = UV2;
+	if (tex_stretch) {
+		uv_alb = UV;
+	}
+	uv_alb *= tex_scale;
+	
+	vec4 alb_sample = texture(albedo_tex,uv_alb);
+	
+	ALBEDO = alb_sample.rgb * alb_sample.a * color.rgb;
 	SPECULAR = specular;
 	ROUGHNESS = roughness;
 	METALLIC = metallic;
