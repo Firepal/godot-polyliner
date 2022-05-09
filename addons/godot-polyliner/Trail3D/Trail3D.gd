@@ -52,6 +52,8 @@ func _set_material(mat):
 	_mesh_instance.material_override = material
 
 func set_sampling_mode(mode):
+	if sampling_mode == SamplingMode.None and mode != SamplingMode.None:
+		damped_transform = global_transform
 	sampling_mode = mode
 	set_physics_process(mode == SamplingMode.Physics)
 
