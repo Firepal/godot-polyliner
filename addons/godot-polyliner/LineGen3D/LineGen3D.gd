@@ -115,7 +115,7 @@ func draw_from_xforms_indexed(p : Array = Array(),
 				_sf.add_uv( Vector2(uv1,0.0) )
 				_sf.add_uv2( Vector2(uv2,0.0) )
 				_sf.add_vertex( p1.origin )
-				print(p[i+1] != null)
+				
 				if p[i+1] != null:
 					_sf.add_index(i)
 					_sf.add_index(i + 1)

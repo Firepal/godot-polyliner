@@ -29,6 +29,8 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	return is_end;
 }
 
+uniform bool uv_matches_width = true;
+
 varying float is_end;
 void vertex(){
 	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
@@ -39,8 +41,15 @@ void vertex(){
 	
 	BINORMAL = cross(TANGENT,NORMAL);
 	
+	if (uv_matches_width) {
+		UV.x /= line_width;
+	}
+	
+	UV.x = 1.0-UV.x;
+	
 	float line_length = UV2.x;
-	UV2 = UV; 
+//	float uv_correct = UV2.y;
+	UV2 = UV;
 	UV2.x *= line_length;
 	
 	if (rounded) {
@@ -77,10 +86,12 @@ uniform vec4 color : hint_color = vec4(vec3(1.0),1.0);
 uniform float metallic  : hint_range(0.0,1.0,0.005) = 0.0;
 uniform float specular  : hint_range(0.0,1.0,0.005) = 0.5;
 uniform float roughness : hint_range(0.0,1.0,0.005) = 0.5;
+
+uniform bool tube_normal = true;
 void fragment() {
 	if (!FRONT_FACING) { NORMAL = -NORMAL; }
 	
-	if (!tangent_facing) { NORMALMAP.xy = getLineTubeNormal(UV); }
+	if (tube_normal && !tangent_facing) { NORMALMAP.xy = getLineTubeNormal(UV); }
 	
 	
 	if (rounded) {
@@ -95,7 +106,7 @@ void fragment() {
 	}
 	uv_alb *= tex_scale;
 	
-	vec4 alb_sample = texture(albedo_tex,uv_alb);
+	vec4 alb_sample = texture(albedo_tex,uv_alb.yx);
 	
 	ALBEDO = alb_sample.rgb * alb_sample.a * color.rgb;
 	SPECULAR = specular;

@@ -1,14 +1,15 @@
 shader_type spatial;
-render_mode skip_vertex_transform;
+render_mode skip_vertex_transform,cull_disabled;
+render_mode depth_draw_alpha_prepass;
 //render_mode unshaded;
 
 // \"tangent-facing\" code and \"rounded end\" code was removed
 // for this particular shader
 
-uniform float line_width = 0.05;
+uniform float line_width = 0.025;
 float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 					inout vec3 normal, inout vec3 tangent,inout vec3 binormal){
-	vec3 dir_to_next_point = normal;
+	vec3 dir_to_next_point = normalize(normal);
 	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
 	
 	float is_end = 0.5-uv.x;
@@ -22,13 +23,6 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	tangent = cross(normal,binormal);
 	
 	return is_end;
-}
-
-mat3 facevec(vec3 vector) {
-	vec3 c = vector;
-	vec3 a = normalize(cross(c,vec3(0.0,1.0,0.0)));
-	vec3 b = normalize(cross(a,c));
-	return mat3(a,b,c);
 }
 
 mat3 rotateAlign( vec3 v1, vec3 v2 )
@@ -67,22 +61,42 @@ mat3 rotation3dX(float angle) {
 	);
 }
 
+uniform float twirl_aspect = 0.5;
 uniform float angle = 0.0;
-varying vec3 eye_dir;
+varying vec3 ray_dir;
+varying vec3 ray_origin;
+varying mat3 rot;
+varying mat3 TBN;
 void vertex(){
 	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
+	float is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT,BINORMAL);
 	
-	float is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV2,NORMAL,TANGENT,BINORMAL);
-	
-	mat3 TBN = mat3(
+	TBN = mat3(
 		TANGENT,
 		-BINORMAL,
 		NORMAL
 	);
-	eye_dir = VERTEX * TBN;
+	// I don't know how this works, but it does, so no complaints
+	vec3 yeds = INV_CAMERA_MATRIX[1].xyz * TBN;
+	float a1 = atan(-yeds.y,yeds.z);
+	rot = rotation3dX( a1 + angle );
+	TBN *= rot;
+	
+	ray_dir = VERTEX * TBN;
+	ray_origin = vec3(UV,0.5);
+	ray_origin.x *= UV2.x;
+	float asp = twirl_aspect / line_width;
+	
+	ray_origin.y -= 0.5;
+	ray_origin.xy *= vec2(asp,1.0)*0.4;
+	
+	ray_origin *= rot;
+	
+	// Handle object rotation
+	rot = mat3(WORLD_MATRIX) * rot;
 }
 
 vec3 opRep( in vec3 p, in vec3 c )
@@ -93,9 +107,7 @@ vec3 opRep( in vec3 p, in vec3 c )
 
 uniform float link_radius = 0.15;
 uniform float link_thickness = 0.05;
-float sdLink( vec3 p, float le )
-{
-	
+float sdLink( vec3 p, float le ) {
 	float r1 = link_radius;
 	float r2 = link_thickness;
 	vec3 q = vec3( p.x, max(abs(p.y)-le,0.0), p.z );
@@ -108,15 +120,16 @@ float scene(vec3 p){
 	p = opRep(p,vec3(repeat_size+repeat_size_b,0.0,0.0));
 	p.x = p.x - clamp(p.x,-repeat_size_b,repeat_size_b);
 	p.x = clamp(p.x,-0.5,0.5);
-	vec3 p1 = rotateAlign(vec3(0.0,1.0,0.0), vec3(1.0,0.0,0.0)) * p;
 	
-	mat3 rot = rotateAlign(vec3(1.0,0.0,0.0), vec3(0.0,0.0,1.0));
-	vec3 p2 = rot * p1-vec3(0.0,0.4,0.0);
-	vec3 p3 = rot * p1-vec3(0.0,-0.4,0.0);
+	vec3 p1 = p.yxz;
+	vec3 p2 = p.zxy - vec3(0.0,0.4,0.0);
+	vec3 p3 = p.zxy + vec3(0.0,0.4,0.0);
+	
 	float r1 = sdLink(p1, 0.1);
 	float r2 = sdLink(p2, 0.1);
 	float r3 = sdLink(p3, 0.1);
 	
+//	return min(r1,r2);
 	return min(r1,min(r2,r3));
 }
 
@@ -133,10 +146,8 @@ vec3 getNormal( in vec3 p )
 float raymarch(vec3 ro, vec3 rd){
 	float total_dist = 0.0;
 	
-	for(int i=0;i<80;i++){
-		// culling below 3.0 is excessive
-		// and even more visible at grazing angles
-		if (total_dist > 5.0) { break; }
+	for(int i=0;i<40;i++){
+		if (total_dist > 4.0) { break; }
 		
 		vec3 ray = ro + (rd * total_dist);
 		
@@ -152,47 +163,36 @@ float raymarch(vec3 ro, vec3 rd){
 	return -1.0;
 }
 
-uniform float roughness : hint_range(0.0, 1.0, 0.001) = 0.1;
+float fake_ao(vec3 ro, vec3 rd) {
+	float ao = 1.0;
+	const float scale = 0.02;
+	float sc = scale;
+	for (int i = 0; i < 5; i++) {
+		ao += scene(ro + rd * sc);
+		sc *= 2.0;
+	}
+	return log2(ao)*1.6;
+}
+
+uniform float roughness : hint_range(0.0, 1.0, 0.001) = 0.25;
+uniform float metallic : hint_range(0.0, 1.0, 0.001) = 1.0;
 uniform vec4 color : hint_color = vec4(vec3(0.9),1.0);
-uniform float twirl_aspect = 0.5;
 
 void fragment(){
-	mat3 TBN =  mat3(
-		TANGENT,
-		-BINORMAL,
-		NORMAL
-	);
+	vec3 ro = ray_origin;
+	vec3 rd = normalize(ray_dir);
 	
-	// I don't know how this works, but it does, so no complaints
-	vec3 yeds = INV_CAMERA_MATRIX[1].xyz * TBN;
-	float a1 = atan(-yeds.y,yeds.z);
-
-	mat3 rot = rotation3dX( a1 + angle );
-	TBN *= rot;
-	
-	
-//	rot *= rotateAlign( INV_CAMERA_MATRIX[0].xyz * TBN, vec3(-1.0,0.0,0.0) );
-	vec3 ro = vec3(UV,0.5);
-	ro.x *= twirl_aspect / line_width;
-	vec3 rd = normalize( eye_dir);
-	
-	
-	// fix weird offset
-	ro.y += -0.5;
-	
-	// fit the model roughly to line mesh bounds
-	ro.xy *= 0.45;
-	
-	float hit = raymarch(ro * rot, rd * rot);
-	if (hit < 0.0) { discard; }
+	float hit = raymarch(ro, normalize(rd));
+	if ( hit < 0.0 ) { discard; }
 	
 	vec3 hit_pos = ro + rd * hit;
-	vec3 hit_normal = TBN * getNormal(hit_pos * rot);
 	
-	NORMAL = hit_normal;
+	vec3 hit_normal = getNormal(hit_pos);
+	NORMAL = TBN * hit_normal;
 	
 	ALBEDO = color.rgb;
+//	AO = fake_ao(hit_pos,hit_normal);
 	
 	ROUGHNESS = roughness;
-	METALLIC = 1.0;
+	METALLIC = metallic;
 }

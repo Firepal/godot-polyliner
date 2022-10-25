@@ -18,6 +18,7 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	
 	tangent = perp;
 	normal = cross(perp,dir_to_next_point);
+	tangent = cross(tangent,normal);
 	
 	return is_end;
 }
@@ -30,16 +31,13 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV2,NORMAL,TANGENT);
+	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
 	
-	// TODO: Why does this make TBN work,
-	// while it breaks normal mapping?
-	BINORMAL = TANGENT;
-	TANGENT = cross(BINORMAL,NORMAL);
+	BINORMAL = cross(TANGENT,NORMAL);
 	
 	TBN = mat3(
 		TANGENT,
-		BINORMAL,
+		-BINORMAL,
 		NORMAL
 	);
 	
