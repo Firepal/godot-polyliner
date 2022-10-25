@@ -1,38 +1,58 @@
 [gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://addons/godot-polyliner/demos/osc/Oscer.gd" type="Script" id=1]
-[ext_resource path="res://addons/godot-polyliner/demos/osc/jobinterview-petscop.wav" type="AudioStream" id=2]
+[ext_resource path="res://addons/godot-polyliner/demos/osc/jobinterview.ogg" type="AudioStream" id=2]
 
 [sub_resource type="Shader" id=7]
 code = "shader_type spatial;
 render_mode unshaded;
-vec3 line_process(float width, vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 dir_to_next_vertex, vec2 uv,
-					out vec3 normal, out vec3 tangent){
-	vec3 wv = (world_mat*vec4(vertex,1.0)).xyz;
-	vec3 dir_to_cam = cam_pos-wv;
-	dir_to_cam *= mat3(world_mat);
-	vec3 perp = normalize(cross(dir_to_cam,-dir_to_next_vertex));
+render_mode skip_vertex_transform, cull_disabled;
+
+uniform float line_width = 0.02;
+uniform bool tangent_facing = false;
+uniform bool rounded = false;
+float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
+					inout vec3 normal, inout vec3 tangent){
+	vec3 dir_to_next_point = normal;
+	vec3 perp = tangent;
+	if (!tangent_facing) {
+		perp = normalize(cross(dir_to_cam,dir_to_next_point));
+	}
+	
+	float is_end = 0.5-uv.x;
+	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
+	vec3 rounder = vec3(0.0); 
+	if (rounded) { 
+		rounder = is_end * normalize(cross(perp,dir_to_cam));
+	}
+
+	float side = sign(float(uv.y > 0.5)-0.5);
+	vertex += ((perp*side)-rounder) * width;
 	
 	tangent = perp;
-	normal = cross(perp,dir_to_next_vertex);
+	normal = cross(perp,dir_to_next_point);
 	
-	if (uv.y < 0.5)	perp *= -1.0;
-	vertex += perp*width;
-	return vertex;
+	return is_end;
 }
 void vertex(){
-	VERTEX = line_process(0.01, VERTEX, WORLD_MATRIX, CAMERA_MATRIX[3].xyz, COLOR.rgb, UV, NORMAL, TANGENT);
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	line_process(line_width, VERTEX, normalize(VERTEX), UV, NORMAL, TANGENT);
 }
 
+uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.0),1.0);
 void fragment() {
-	
-	ALBEDO = vec3(1.0,1.0,0.0);
 	ALPHA = 1.0-pow(smoothstep(1.0,0.0,UV.x),0.05);
 	ALPHA *= smoothstep(1.0,0.0,abs(UV.y*2.0-1.0));
+	
+	ALBEDO = mix(color.rgb,vec3(1.0),ALPHA * color.a);
 }"
 
 [sub_resource type="ShaderMaterial" id=8]
 shader = SubResource( 7 )
+shader_param/line_width = 0.01
+shader_param/tangent_facing = false
+shader_param/rounded = false
+shader_param/color = Color( 1, 1, 0, 1 )
 
 [sub_resource type="PlaneMesh" id=9]
 
@@ -80,7 +100,6 @@ background_mode = 1
 [node name="Trail3D" type="MeshInstance" parent="."]
 material_override = SubResource( 8 )
 mesh = SubResource( 9 )
-material/0 = null
 script = ExtResource( 1 )
 
 [node name="MeshInstance" type="MeshInstance" parent="Trail3D"]

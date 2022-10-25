@@ -8,6 +8,7 @@ var linegen = LineGen3D.new()
 func _ready():
 	capture = AudioServer.get_bus_effect(0,0)
 	linegen.render_mode = Mesh.PRIMITIVE_TRIANGLES
+	OS.vsync_enabled = false
 
 func _process(delta):
 	if not Engine.editor_hint: _cap_do(delta)
@@ -26,4 +27,4 @@ func _cap_do(delta):
 				_p.push_front(t)
 		$MeshInstance.global_transform = Transform(Basis(),p)
 		_p.resize(MAX_SAMPLES)
-		mesh = linegen.draw_from_points(_p)
+		mesh = linegen.draw_from_points_strip(_p)
