@@ -4,9 +4,9 @@
 [ext_resource path="res://addons/godot-polyliner/Line3D/Line3D.gd" type="Script" id=2]
 [ext_resource path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" type="Script" id=3]
 [ext_resource path="res://addons/godot-polyliner/Trail3D/Trail3D.gd" type="Script" id=4]
-[ext_resource path="res://ropetesting/ropetest.gd" type="Script" id=5]
+[ext_resource path="res://addons/godot-polyliner/demos/ropetesting/ropetest.gd" type="Script" id=5]
 [ext_resource path="res://addons/godot-polyliner/shaders/swoosh.gdshader" type="Shader" id=6]
-[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_chain.gdshader" type="Shader" id=7]
+[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmaslightbulbs.gdshader" type="Shader" id=7]
 
 [sub_resource type="ProceduralSky" id=1]
 sky_top_color = Color( 0.219608, 0.219608, 0.219608, 1 )
@@ -66,7 +66,7 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV2,NORMAL,TANGENT);
+	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
 	
 	// TODO: Why does this make TBN work,
 	// while it breaks normal mapping?
@@ -393,14 +393,13 @@ shader_param/curve = 0.2
 [sub_resource type="ShaderMaterial" id=37]
 shader = ExtResource( 7 )
 shader_param/line_width = 0.191
+shader_param/twirl_aspect = 2.0
 shader_param/angle = 1.124
-shader_param/link_radius = 0.15
-shader_param/link_thickness = 0.05
 shader_param/repeat_size = 1.0
-shader_param/repeat_size_b = 0.05
+shader_param/rot_angle = 0.0
+shader_param/rot_period = 0.0
 shader_param/roughness = 0.1
 shader_param/color = Color( 1, 1, 1, 1 )
-shader_param/twirl_aspect = 2.0
 
 [sub_resource type="Curve3D" id=38]
 bake_interval = 0.02
@@ -412,14 +411,13 @@ _data = {
 [sub_resource type="ShaderMaterial" id=39]
 shader = ExtResource( 7 )
 shader_param/line_width = 0.05
+shader_param/twirl_aspect = 0.5
 shader_param/angle = 0.0
-shader_param/link_radius = 0.15
-shader_param/link_thickness = 0.05
 shader_param/repeat_size = 1.0
-shader_param/repeat_size_b = 0.1
+shader_param/rot_angle = 0.0
+shader_param/rot_period = 0.0
 shader_param/roughness = 0.293
 shader_param/color = Color( 1, 1, 0.368627, 1 )
-shader_param/twirl_aspect = 0.5
 
 [node name="Spatial" type="Spatial"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0148439, 0, -0.0798446 )
@@ -440,7 +438,6 @@ transform = Transform( -0.967383, -0.0784649, 0.24086, 0, 0.950819, 0.309747, -0
 [node name="MeshInstance" type="MeshInstance" parent="."]
 transform = Transform( 9, 0, 0, 0, 1, 0, 0, 0, 9, -0.721719, 1.50942, 0.0287716 )
 mesh = SubResource( 3 )
-material/0 = null
 
 [node name="StaticBody" type="StaticBody" parent="MeshInstance"]
 
@@ -453,10 +450,9 @@ mode = 3
 can_sleep = false
 script = ExtResource( 5 )
 end_segment = NodePath("../RigidBody2")
-segment_count = 27
-segment_mass = 50.0
-stiff_multiplier = 15.0
-damp = 1.0
+segment_count = 5
+stiff_multiplier = 4.0
+damp = 4.0
 
 [node name="CollisionShape" type="CollisionShape" parent="RigidBody"]
 shape = SubResource( 11 )
@@ -465,7 +461,6 @@ disabled = true
 [node name="MeshInstance" type="MeshInstance" parent="RigidBody"]
 material_override = SubResource( 34 )
 mesh = SubResource( 35 )
-material/0 = null
 
 [node name="Line3D" type="Spatial" parent="RigidBody"]
 script = ExtResource( 2 )
@@ -481,9 +476,7 @@ can_sleep = false
 shape = SubResource( 10 )
 
 [node name="MeshInstance" type="MeshInstance" parent="RigidBody2"]
-visible = false
 mesh = SubResource( 33 )
-material/0 = null
 
 [node name="MeshInstance2" type="MeshInstance" parent="."]
 transform = Transform( -3.29765e-08, -0.583896, 0.811829, 1.50819e-07, 0.811829, 0.583896, -1, 1.41694e-07, 6.12914e-08, -5.35959, 9.02738, -0.218791 )
@@ -501,7 +494,6 @@ can_sleep = false
 [node name="MeshInstance3" type="MeshInstance" parent="RigidBody3"]
 mesh = SubResource( 19 )
 skeleton = NodePath("../..")
-material/0 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="RigidBody3"]
 shape = SubResource( 20 )

@@ -95,7 +95,7 @@ func connect_to_other_segment(this_segment,other_segment):
 func _handle_breakage():
 	pass
 
-onready var rope_seg_template = preload("res://ropetesting/RopeSegment3D.tscn")
+onready var rope_seg_template = preload("res://addons/godot-polyliner/demos/ropetesting/RopeSegment3D.tscn")
 
 func create_segments():
 	var start_pos = global_transform.origin
