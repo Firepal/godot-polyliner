@@ -4,6 +4,7 @@ render_mode vertex_lighting,specular_blinn;
 //render_mode depth_draw_alpha_prepass;
 
 uniform float line_width = 0.1;
+uniform sampler2D width_curve : hint_albedo;
 uniform bool tangent_facing = false;
 uniform bool rounded = false;
 float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
@@ -20,9 +21,10 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	if (rounded) { 
 		rounder = is_end * normalize(cross(perp,dir_to_cam));
 	}
-
+	
+	float curve_multiplier = texture(width_curve, uv).a;
 	float side = sign(float(uv.y > 0.5)-0.5);
-	vertex += ((perp*side)-rounder) * width;
+	vertex += ((perp*side)-rounder) * width * curve_multiplier;
 	
 	tangent = perp;
 	normal = cross(perp,dir_to_next_point);
