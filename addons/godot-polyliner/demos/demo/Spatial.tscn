@@ -1,10 +1,10 @@
-[gd_scene load_steps=49 format=2]
+[gd_scene load_steps=53 format=2]
 
 [ext_resource path="res://addons/godot-polyliner/demos/default_env.tres" type="Environment" id=1]
 [ext_resource path="res://addons/godot-polyliner/shaders/line_glow.gdshader" type="Shader" id=2]
 [ext_resource path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" type="Script" id=3]
 [ext_resource path="res://addons/godot-polyliner/Trail3D/Trail3D.gd" type="Script" id=4]
-[ext_resource path="res://addons/godot-polyliner/shaders/swoosh.gdshader" type="Shader" id=5]
+[ext_resource path="res://addons/godot-polyliner/shaders/line_fade.gdshader" type="Shader" id=5]
 [ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_rope.gdshader" type="Shader" id=6]
 [ext_resource path="res://addons/godot-polyliner/Line3D/shaders/line_neon.shader" type="Shader" id=7]
 [ext_resource path="res://addons/godot-polyliner/shaders/line_pbr.gdshader" type="Shader" id=8]
@@ -52,7 +52,7 @@ _data = {
 
 [sub_resource type="ShaderMaterial" id=7]
 shader = ExtResource( 8 )
-shader_param/line_width = 0.03
+shader_param/line_width = 0.031
 shader_param/tangent_facing = false
 shader_param/rounded = false
 shader_param/uv_matches_width = true
@@ -71,13 +71,20 @@ _data = {
 "tilts": PoolRealArray( 0, 0 )
 }
 
+[sub_resource type="Curve" id=49]
+_data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -6.86684, -2.3, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=50]
+curve = SubResource( 49 )
+
 [sub_resource type="ShaderMaterial" id=9]
 shader = ExtResource( 5 )
-shader_param/line_width = 0.078
+shader_param/line_width = 0.177
 shader_param/tangent_facing = false
 shader_param/tangent_offset = 0.0
 shader_param/color = Color( 1, 0, 0, 1 )
-shader_param/alpha_curve = 0.145
+shader_param/alpha_curve = 0.5
+shader_param/width_curve = SubResource( 50 )
 
 [sub_resource type="Curve3D" id=10]
 bake_interval = 0.1
@@ -99,14 +106,21 @@ _data = {
 "tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0 )
 }
 
+[sub_resource type="Curve" id=47]
+_data = [ Vector2( 0, 1 ), 0.519532, 0.0, 0, 0, Vector2( 1, 0 ), -3.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=48]
+curve = SubResource( 47 )
+
 [sub_resource type="ShaderMaterial" id=33]
 shader = ExtResource( 2 )
-shader_param/tangent_facing = false
-shader_param/rounded = true
 shader_param/line_width = 0.0
 shader_param/glow_width = 0.4
+shader_param/tangent_facing = false
+shader_param/rounded = true
 shader_param/color = Color( 0, 0.396078, 0.956863, 1 )
 shader_param/curve = 0.2
+shader_param/width_curve = SubResource( 48 )
 
 [sub_resource type="Curve3D" id=12]
 bake_interval = 0.09
@@ -511,7 +525,7 @@ size = Vector3( 0.1, 0.1, 1.938 )
 [node name="Spatial" type="Spatial"]
 
 [node name="wormspinner" type="Spatial" parent="."]
-transform = Transform( -0.540772, 0, 0.84116, 0, 0.999999, 0, -0.841153, 0, -0.540777, -0.277619, 0.016, 3.531 )
+transform = Transform( 0.978218, 0, -0.207512, 0, 0.999999, 0, 0.207511, 0, 0.978228, 0.399602, 0.016, 3.531 )
 script = SubResource( 1 )
 mul = 1.59
 

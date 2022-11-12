@@ -8,6 +8,7 @@ render_mode unshaded;
 // with Tangent Facing enabled
 
 uniform float line_width = 0.4;
+uniform sampler2D width_curve : hint_albedo;
 uniform bool tangent_facing = true;
 uniform float tangent_offset = 0.5;
 float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
@@ -17,9 +18,10 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	if (!tangent_facing) {
 		perp = normalize(cross(dir_to_cam,dir_to_next_point));
 	}
-
+	
+	float curve_multiplier = texture(width_curve, uv).a;
 	float side = sign(float(uv.y > 0.5)-0.5);
-	vertex += (perp*side) * width;
+	vertex += (perp*side) * width * curve_multiplier;
 	
 	tangent = perp;
 	normal = cross(perp,dir_to_next_point);

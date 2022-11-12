@@ -2,6 +2,9 @@ shader_type spatial;
 render_mode skip_vertex_transform, cull_disabled;
 render_mode blend_add, unshaded;
 
+uniform float line_width = 0.0;
+uniform float glow_width = 0.4;
+uniform sampler2D width_curve : hint_albedo;
 uniform bool tangent_facing = false;
 uniform bool rounded = true;
 float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
@@ -18,18 +21,15 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	if (rounded) { 
 		rounder = is_end * normalize(cross(perp,dir_to_cam));
 	}
-
+	float curve_multiplier = texture(width_curve, uv).a;
 	float side = sign(float(uv.y > 0.5)-0.5);
-	vertex += ((perp*side)-rounder) * width;
+	vertex += ((perp*side)-rounder) * width * curve_multiplier;
 	
 	tangent = perp;
 	normal = cross(perp,dir_to_next_point);
 	
 	return is_end;
 }
-
-uniform float line_width = 0.0;
-uniform float glow_width = 0.4;
 
 varying float is_end;
 varying float lw;
