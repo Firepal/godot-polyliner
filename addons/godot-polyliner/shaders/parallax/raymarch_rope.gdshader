@@ -1,5 +1,8 @@
 shader_type spatial;
 render_mode skip_vertex_transform;
+//render_mode unshaded;
+
+const float RAY_MISS = -1e20;
 
 // \"tangent-facing\" code and \"rounded end\" code was removed
 // for this particular shader
@@ -24,7 +27,6 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 }
 
 varying mat3 TBN;
-varying vec3 eye_dir;
 varying float is_end;
 void vertex(){
 	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
@@ -40,8 +42,6 @@ void vertex(){
 		-BINORMAL,
 		NORMAL
 	);
-	
-	eye_dir = normalize(VERTEX) * TBN;
 }
 
 mat3 rotation3dX(float angle) {
@@ -80,26 +80,50 @@ vec3 getNormal( in vec3 p )
                       k.xxx*scene( p + k.xxx*h ) );
 }
 
-float raymarch(vec3 ro, vec3 rd){
-	float total_dist = 0.0;
+
+float raymarch_base(
+	vec3 ro, 
+	vec3 rd, 
+	int sph_checks, 
+	float max_dist,
+	float min_dist,
+	float start_dist
+	){
+	float total_dist = start_dist;
 	
-	for(int i=0;i<60;i++){
-		// culling below 3.0 is excessive
-		// and even more visible at grazing angles
-		if (total_dist > 3.0) { break; }
+	for(int i=0; i<sph_checks; i++){
+		if (total_dist > max_dist) { break; }
 		
 		vec3 ray = ro + (rd * total_dist);
-		
 		float dist = scene(ray);
 		
-		if (dist < 0.005){
-			return total_dist;
-		}
+		if (dist < min_dist){ return total_dist; }
 		
 		total_dist += dist;
 	}
 	
-	return -1.0;
+	return RAY_MISS;
+}
+
+float raymarch(vec3 ro, vec3 rd){
+	return raymarch_base(ro,rd,256,2.0,0.0001,-2.0);
+}
+float raymarch_ao(vec3 ro, vec3 rd){
+	return raymarch_base(ro+rd*0.2,rd,256,0.15,0.01,0.0);
+}
+
+float raymarch_light(vec3 ro, vec3 rd){
+	float depth = 0.2;
+	float shadow = 1.0;
+	for(int i = 0; i < 60; i++) {
+		float dist = scene(ro + depth*rd);
+		if(depth > 1.0 || shadow < -1.0) { break; }
+		
+		shadow = min(shadow, dist/(0.05*depth));
+		depth += clamp(dist, 0.01, 0.05);
+	}
+	
+	return smoothstep(-1.0, 0.0, shadow);
 }
 
 vec2 hash22(vec2 p)
@@ -108,57 +132,84 @@ vec2 hash22(vec2 p)
 	p3 += dot(p3, p3.yzx+33.33);
 	return fract((p3.xx+p3.yz)*p3.zy);
 }
+
+uniform sampler2D blue_noise : hint_white;
+
+vec2 R2(uint index) {
+	const float g = 1.32471795724474602596f;
+	const float a1 = 1.0f/g;
+	const float a2 = 1.0f/(g*g);
+	return vec2(float(index)*a1, float(index)*a2);
+}
+
+float blue_noise_1(inout uvec3 state) {
+	vec2 uv = vec2(state.xy) / 1024.0 + R2(state.z % uint(256));
+	state.z = state.z + uint(1);
+	return texture(blue_noise, uv).r;
+}
+
+uniform float ao_samples : hint_range(1,128,1) = 16;
 float ao(vec3 p, vec3 n, vec2 fragcoord)
 {
 	vec3 t = normalize(cross(n,vec3(0.0,1.0,0.0)));
 	vec3 b = normalize(cross(t,n));
 	
-	float inv_t = 1.0/10.0;
-	
+	float inv_t = 1.0/ao_samples;
+	uvec3 state = uvec3(uvec2(fragcoord),uint(TIME*1000.0*1.618));
 	float occ = 0.0;
-	for (int i=0;i<10;i++)
+	for (float i=0.0; i < ao_samples; i++)
 	{
-		vec2  aa = ( hash22(fragcoord+TIME*float(i+1)) );
+		vec2 aa;
+		aa.x = blue_noise_1(state);
+		aa.y = blue_noise_1(state);
 		float ra = sqrt(aa.y);
 		float rx = ra*cos(6.2831*aa.x); 
 		float ry = ra*sin(6.2831*aa.x);
 		float rz = sqrt( 1.0-aa.y );
 		vec3  dir = vec3( rx*t + ry*b + rz*n );
-		vec3 no;
-		float hit = raymarch(p+dir*0.1,dir);
-		if (hit < 0.0)
-			occ += inv_t;
+		
+		float hit = float(raymarch_ao(p,dir) != RAY_MISS);
+//		occ = 1.0-hit;
+		occ = (inv_t * (1.0-hit)) + occ;
 	}
 	
 	return occ;
 }
 
 uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.5),1.0);
-uniform float twirl_aspect = 0.5;
+uniform float twirl_aspect = 2;
 
-void fragment(){
-	// We can't do raycasts with objects
-	// that intersect Z =< 0.0 in tangent-space; it gets clipped.
-	// So the rope is actually below the line surface.
-	vec3 ro = vec3(UV,0.45);
-	vec3 rd = eye_dir;
-	
-	ro.x *= twirl_aspect / line_width;
-	
-	// fix weird offset
-	ro.y += -0.5;
-	
-	// fit the model roughly to line mesh bounds
-	ro.xy *= 0.8;
+uniform float ao_power : hint_range(0,2,0.001) = 1.0;
+
+vec3 get_ro(vec2 uv) {
+	vec2 scale = vec2(twirl_aspect / line_width, 1.0);
+	return vec3((uv*scale)-0.5,0.0);
+}
+
+varying vec3 hit_pos;
+varying vec3 hit_normal;
+void fragment() {
+	vec3 ro = get_ro(UV);
+	vec3 rd = -VIEW * TBN;
 	
 	float hit = raymarch(ro, rd);
-	if (hit < 0.0) { discard; }
+	if (hit == RAY_MISS) { discard; }
 	
-	vec3 hit_pos = ro + rd * hit;
-	vec3 hit_normal = getNormal(hit_pos);
+	hit_pos = ro + (rd * hit);
+	hit_normal = getNormal(hit_pos);
 	NORMAL = TBN * hit_normal;
 	
+	ROUGHNESS = 0.8;
+	
+	ALBEDO = color.rgb;
 	float ao = ao(hit_pos, hit_normal, FRAGCOORD.xy);
-	ALBEDO = color.rgb * ao;
-	ROUGHNESS = 0.5;
+//	ao = pow(ao,ao_power);
+//	AO = ao;
+	ALBEDO *= ao;
+}
+
+void light() {
+	vec3 lighting = clamp(dot(NORMAL,LIGHT)/3.1415,0.0,1.0) * LIGHT_COLOR * ATTENUATION * ALBEDO;
+	float shadow = raymarch_light(hit_pos, LIGHT*TBN);
+	DIFFUSE_LIGHT += lighting * shadow;
 }

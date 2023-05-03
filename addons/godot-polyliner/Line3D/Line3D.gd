@@ -22,7 +22,7 @@ func clear_points():
 func get_point_count() -> int:
 	return points.size()
 
-func get_point_position(i : int) -> Vector2:
+func get_point(i : int) -> Vector3:
 	return points[i]
 
 func remove_point(i : int):
@@ -57,18 +57,7 @@ func _enter_tree():
 	redraw()
 
 func _draw():
-	var length = uv_size
-	
-	print()
-	var start = OS.get_ticks_usec()
 	_mesh_instance.mesh = _linegen.draw_from_points_strip(points)
-	var end = OS.get_ticks_usec()
-	print( points.size(), " points, ", (end-start)*0.001, " ms" )
 
-var already_redrawn = false
 func redraw():
 	_draw()
-
-func _process(delta):
-	already_redrawn = false
-

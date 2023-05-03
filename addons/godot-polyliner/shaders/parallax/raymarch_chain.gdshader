@@ -3,6 +3,8 @@ render_mode skip_vertex_transform,cull_disabled;
 render_mode depth_draw_alpha_prepass;
 //render_mode unshaded;
 
+const float RAY_MISS = -1e20;
+
 // \"tangent-facing\" code and \"rounded end\" code was removed
 // for this particular shader
 
@@ -25,31 +27,6 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	return is_end;
 }
 
-mat3 rotateAlign( vec3 v1, vec3 v2 )
-{
-	vec3 axis = cross( v1, v2 );
-	
-	float cosA = dot( v1, v2 );
-	float k = 1.0 / (1.0 + cosA);
-	
-	mat3 result = mat3(
-		vec3(
-		(axis.x * axis.x * k) + cosA,
-		(axis.y * axis.x * k) - axis.z, 
-		(axis.z * axis.x * k) + axis.y),
-		vec3(
-			(axis.x * axis.y * k) + axis.z,  
-			(axis.y * axis.y * k) + cosA,      
-			(axis.z * axis.y * k) - axis.x),
-		vec3(
-			(axis.x * axis.z * k) - axis.y,  
-			(axis.y * axis.z * k) + axis.x,  
-			(axis.z * axis.z * k) + cosA)
-		);
-
-	return result;
-}
-
 mat3 rotation3dX(float angle) {
 	float s = sin(angle);
 	float c = cos(angle);
@@ -61,9 +38,8 @@ mat3 rotation3dX(float angle) {
 	);
 }
 
-uniform float twirl_aspect = 0.5;
+uniform float twirl_aspect = 8.0;
 uniform float angle = 0.0;
-varying vec3 ray_dir;
 varying vec3 ray_origin;
 varying mat3 rot;
 varying mat3 TBN;
@@ -73,7 +49,7 @@ void vertex(){
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
 	float is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT,BINORMAL);
-	
+	BINORMAL = cross(TANGENT,NORMAL);
 	TBN = mat3(
 		TANGENT,
 		-BINORMAL,
@@ -81,13 +57,12 @@ void vertex(){
 	);
 	// I don't know how this works, but it does, so no complaints
 	vec3 yeds = INV_CAMERA_MATRIX[1].xyz * TBN;
-	float a1 = atan(-yeds.y,yeds.z);
-	rot = rotation3dX( a1 + angle );
+	rot = rotation3dX( atan(-yeds.y,yeds.z) + angle );
 	TBN *= rot;
 	
-	ray_dir = VERTEX * TBN;
-	ray_origin = vec3(UV,0.5);
+	ray_origin = vec3(UV,0.0);
 	ray_origin.x *= UV2.x;
+	
 	float asp = twirl_aspect / line_width;
 	
 	ray_origin.y -= 0.5;
@@ -95,8 +70,6 @@ void vertex(){
 	
 	ray_origin *= rot;
 	
-	// Handle object rotation
-	rot = mat3(WORLD_MATRIX) * rot;
 }
 
 vec3 opRep( in vec3 p, in vec3 c )
@@ -107,6 +80,8 @@ vec3 opRep( in vec3 p, in vec3 c )
 
 uniform float link_radius = 0.15;
 uniform float link_thickness = 0.05;
+uniform float repeat_size = 1.0;
+uniform float repeat_size_b = 0.1;
 float sdLink( vec3 p, float le ) {
 	float r1 = link_radius;
 	float r2 = link_thickness;
@@ -114,8 +89,6 @@ float sdLink( vec3 p, float le ) {
 	return length(vec2(length(q.xy)-r1,q.z)) - r2;
 }
 
-uniform float repeat_size = 1.0;
-uniform float repeat_size_b = 0.1;
 float scene(vec3 p){
 	p = opRep(p,vec3(repeat_size+repeat_size_b,0.0,0.0));
 	p.x = p.x - clamp(p.x,-repeat_size_b,repeat_size_b);
@@ -144,23 +117,23 @@ vec3 getNormal( in vec3 p )
 }
 
 float raymarch(vec3 ro, vec3 rd){
-	float total_dist = 0.0;
+	float total_dist = -0.5;
 	
-	for(int i=0;i<40;i++){
+	for(int i=0;i<128;i++){
 		if (total_dist > 4.0) { break; }
 		
 		vec3 ray = ro + (rd * total_dist);
 		
 		float dist = scene(ray);
 		
-		if (dist < 0.001){
+		if (dist < 0.0001){
 			return total_dist;
 		}
 		
 		total_dist += dist;
 	}
 	
-	return -1.0;
+	return RAY_MISS;
 }
 
 float fake_ao(vec3 ro, vec3 rd) {
@@ -178,14 +151,15 @@ uniform float roughness : hint_range(0.0, 1.0, 0.001) = 0.25;
 uniform float metallic : hint_range(0.0, 1.0, 0.001) = 1.0;
 uniform vec4 color : hint_color = vec4(vec3(0.9),1.0);
 
+varying vec3 hit_pos;
 void fragment(){
 	vec3 ro = ray_origin;
-	vec3 rd = normalize(ray_dir);
+	vec3 rd = -VIEW * TBN;
 	
-	float hit = raymarch(ro, normalize(rd));
-	if ( hit < 0.0 ) { discard; }
+	float hit = raymarch(ro, rd);
+	if ( hit == RAY_MISS ) { discard; }
 	
-	vec3 hit_pos = ro + rd * hit;
+	hit_pos = ro + rd * hit;
 	
 	vec3 hit_normal = getNormal(hit_pos);
 	NORMAL = TBN * hit_normal;
@@ -196,3 +170,24 @@ void fragment(){
 	ROUGHNESS = roughness;
 	METALLIC = metallic;
 }
+
+//uniform float ls = 0.1;
+//float raymarch_light(vec3 ro, vec3 rd){
+//	float depth = 0.01;
+//	float shadow = 1.0;
+//	float light_size = ls;
+//	for(int i = 0; i < 60; i++) {
+//		float dist = scene(ro + depth*rd);
+//		if(depth > 1.0 || shadow < -1.0) { break; }
+//
+//		shadow = min(shadow, dist/(light_size*depth));
+//		depth += clamp(dist, 0.04, 0.05);
+//	}
+//
+//	return smoothstep(-1.0, 0.0, shadow);
+//}
+//
+//void light() {
+//	vec3 normal = clamp(dot(NORMAL, LIGHT), 0.0, 1.0) * ATTENUATION * ALBEDO;
+//	DIFFUSE_LIGHT += normal*raymarch_light(hit_pos,LIGHT*TBN);
+//}

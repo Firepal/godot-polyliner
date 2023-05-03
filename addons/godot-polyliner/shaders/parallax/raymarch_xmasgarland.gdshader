@@ -5,7 +5,7 @@ render_mode skip_vertex_transform;
 // \"tangent-facing\" code and \"rounded end\" code was removed
 // for this particular shader
 
-uniform float line_width = 0.05;
+uniform float line_width = 0.02;
 float line_process(float width, float depth, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 					inout vec3 normal, inout vec3 tangent, inout vec3 binormal){
 	vec3 dir_to_next_point = normal;
@@ -19,6 +19,8 @@ float line_process(float width, float depth, inout vec3 vertex, vec3 dir_to_cam,
 	normal = cross(perp,dir_to_next_point);
 	tangent = cross(binormal,normal);
 	vertex += (perp*side) * width;
+	
+	
 	
 	return is_end;
 }
@@ -64,7 +66,7 @@ mat3 rotation3dX(float angle) {
 		vec3(0.0, -s, c)
 	);
 }
-uniform float twirl_aspect = 2;
+uniform float stretch = 8.0;
 uniform float angle = 0.0;
 
 varying vec3 ray_dir;
@@ -91,12 +93,12 @@ void vertex(){
 	TBN *= rot;
 	
 	ray_dir = VERTEX * TBN;
-	ray_origin = vec3(UV,0.0);
-	float asp = twirl_aspect / line_width;
+	ray_origin = vec3(UV,0.2);
+	float asp = stretch / line_width;
 	asp *= UV2.x;
 	
 	ray_origin.y -= 0.5;
-	ray_origin.xy *= vec2(asp,1.0)*0.5;
+	ray_origin.xy *= vec2(asp,1.0)*0.4;
 	
 	ray_origin *= rot;
 	
@@ -141,25 +143,37 @@ float sdRoundCone(vec3 p, vec3 a, vec3 b, float r1, float r2) {
 	return (sqrt(x2*a2*il2)+y*rr) * il2 - r1;
 }
 
-uniform float repeat_size = 0.3;
+uniform float repeat_size = 0.04;
+uniform float spokes = 9.0;
 uniform float rot_angle = 0.0;
-uniform float rot_period = 0.0;
+uniform float rot_period = 3.236; // golden ratio x 2
 vec2 scene(vec3 p) {
 	vec3 yes = vec3(0.0);
 	vec3 pr = opRep(p,vec3(repeat_size,0.0,0.0),yes);
 	
 	vec3 p1 = pr.yxz;
-	mat3 roty = rotation3dX((yes.x*rot_period)+rot_angle);
-	vec3 p2 = p1.yzx * roty;
-	
-	float r1 = length(p.zy)-0.04;
-	float r2 = sdRoundCone(p2,vec3(0.0,0.0,0.08),vec3(0.0,0.0,0.2),0.04,0.01);
+	float r1 = length(p.zy)-0.02;
+	float r2 = 10.0;
+	float y = spokes;
+	float ie;
+	for(float i = 0.0; i < y; i++) {
+		float ang = ((i+1.0)/y)*6.28;
+//		mat3 roty = rotation3dX(ang);
+		mat3 roty = rotation3dX((yes.x*rot_period)+rot_angle+ang);
+		vec3 p2 = p1.yzx * roty;
+		
+		float r2n = sdRoundCone(p2,vec3(0.0),vec3(0.0,0.0,0.2),0.01,0.005);
+		if (r2n < r2) {
+			ie = i;
+			r2 = r2n;
+		}
+	}
 	
 //	float dist = r1;
 	float dist = min(r1,r2);
 //	float dist = smin(r1,r2,0.03);
 
-	float color = yes.x;
+	float color = yes.x*(ie);
 	if (r2 > r1) { color = -10.0; }
 	
 	return vec2(dist,color);
@@ -177,24 +191,28 @@ vec3 getNormal( in vec3 p )
 }
 
 float raymarch(vec3 ro, vec3 rd){
-	float total_dist = -0.8;
-	float r = smoothstep(-0.04,0.3,repeat_size);
-	for(int i=0;i<128;i++){
-		if (total_dist > 10.0) { break; }
+	float total_dist = 0.0;
+	
+	for(int i=0;i<200;i++){
+		if (total_dist > 100.0) { break; }
 		
 		vec3 ray = ro + (rd * total_dist);
 		
 		float dist = scene(ray).x;
 		
-		if (dist < 0.0001){
+		if (dist < 0.001){
 			return total_dist;
 		}
 		
-		total_dist += dist*r;
+		total_dist += dist*0.5;
 	}
 	
-	return -1e20;
+	return -1.0;
 }
+
+uniform float roughness : hint_range(0.0, 1.0, 0.001) = 1.0;
+uniform vec4 color : hint_color = vec4(vec3(0.1,0.2,0.1),1.0);
+uniform vec4 g_color : hint_color = vec4(vec3(0.3,0.6,0.3),1.0);
 
 vec3 hashcol(float seed) {
 	float randseed = fract(seed*0.3056);
@@ -205,15 +223,13 @@ vec3 hashcol(float seed) {
 	vec3 co = mix(red,green,smoothstep(0.3333,0.3,randseed));
 	co = mix(co,blue,smoothstep(0.6,0.6666,randseed));
 	
-	return vec3(co);
+//	return co;
+	return mix(co,g_color.rgb,g_color.a);
 }
-
-uniform float roughness : hint_range(0.0, 1.0, 0.001) = 0.5;
-uniform vec4 color : hint_color = vec4(vec3(0.1),1.0);
 
 void fragment(){
 	ALBEDO = color.rgb;
-	ROUGHNESS = roughness;
+	ROUGHNESS = 0.7;
 	
 	vec3 ro = ray_origin;
 	vec3 rd = normalize(ray_dir);
@@ -223,7 +239,7 @@ void fragment(){
 	
 	float colhash = scene(hit_pos).y;
 	
-	if (hit_info == -1e20) { discard; }
+	if (hit_info < 0.0) { discard; }
 	
 	vec3 hit_normal = TBN * getNormal(hit_pos);
 	
@@ -233,10 +249,11 @@ void fragment(){
 		float thing = pow(smoothstep(1.0,0.0,dot(NORMAL,VIEW)),0.1);
 		float thing2 = 1.0-pow(smoothstep(1.0,0.0,dot(NORMAL,VIEW)),0.5);
 //		ALPHA = thing;
-		EMISSION = hashcol( colhash ) + (1.0-thing);
-		
 		ALBEDO = vec3(0.01);
-		ROUGHNESS = 0.3;
+		ALBEDO = hashcol( colhash );
+		
+		ROUGHNESS = roughness;
+		METALLIC = 0.5;
 	}
 	
 }

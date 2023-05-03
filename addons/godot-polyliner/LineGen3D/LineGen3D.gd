@@ -258,11 +258,12 @@ func draw_from_points_strip(p : PoolVector3Array = PoolVector3Array(),
 	if ps < 2: return ArrayMesh.new()
 	
 	
-#	var acc = 0.0
-#	for i in range(ps-1):
-#		acc += p[i].distance_squared_to(p[i+1])
+	var acc = 0.0
+	for i in range(ps-1):
+		acc += p[i].distance_squared_to(p[i+1])
 #	print(acc)
-#	acc = sqrt(acc)
+	acc = sqrt(acc)
+	line_length = acc
 	
 	var inv_ps = 1.0/(ps-1)
 	

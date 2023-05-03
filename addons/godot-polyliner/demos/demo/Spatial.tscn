@@ -1,4 +1,4 @@
-[gd_scene load_steps=53 format=2]
+[gd_scene load_steps=56 format=2]
 
 [ext_resource path="res://addons/godot-polyliner/demos/default_env.tres" type="Environment" id=1]
 [ext_resource path="res://addons/godot-polyliner/shaders/line_glow.gdshader" type="Shader" id=2]
@@ -7,8 +7,10 @@
 [ext_resource path="res://addons/godot-polyliner/shaders/line_fade.gdshader" type="Shader" id=5]
 [ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_rope.gdshader" type="Shader" id=6]
 [ext_resource path="res://addons/godot-polyliner/Line3D/shaders/line_neon.shader" type="Shader" id=7]
-[ext_resource path="res://addons/godot-polyliner/shaders/line_pbr.gdshader" type="Shader" id=8]
-[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmaslightbulbs.gdshader" type="Shader" id=9]
+[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmasgarland.gdshader" type="Shader" id=9]
+[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmaslightbulbs.gdshader" type="Shader" id=10]
+[ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_chain.gdshader" type="Shader" id=11]
+[ext_resource path="res://addons/godot-polyliner/HDR_L_0.png" type="Texture" id=12]
 
 [sub_resource type="GDScript" id=1]
 script/source = "tool
@@ -31,8 +33,10 @@ func _process(delta):
 [sub_resource type="ShaderMaterial" id=31]
 shader = ExtResource( 6 )
 shader_param/line_width = 0.05
+shader_param/ao_samples = 10.0
 shader_param/color = Color( 0, 0.145098, 0.0117647, 1 )
 shader_param/twirl_aspect = 0.5
+shader_param/ao_power = 1.0
 
 [sub_resource type="SpatialMaterial" id=35]
 metallic = 1.0
@@ -44,30 +48,149 @@ radius = 0.5
 height = 1.0
 
 [sub_resource type="Curve3D" id=6]
-bake_interval = 0.02
+bake_interval = 0.01
 _data = {
-"points": PoolVector3Array( -0.681473, 0.501452, 0.0499668, -0.0453298, -0.808289, -0.422336, -0.287503, 1.98422, 3.27149, -0.0263753, -0.319308, 0.277562, 0.211185, -0.271242, -0.129593, -0.702265, 1.97101, 1.42616, -0.404719, -0.395793, 0.304124, 0.250978, -0.285766, -0.20488, -0.185635, 1.97374, 0.449912, -0.389108, -0.272281, 0.110411, 0, 0, 0, 0.77868, 1.99284, -0.282347, -0.465314, 0.0219152, 0.559101, 0.465314, -0.0219152, -0.559101, 1.30247, 0.0139077, -0.142204, -0.690027, -0.0455682, 0.313123, 0.690027, 0.0455682, -0.313123, 2.53523, 0.0637698, -0.73445 ),
+"points": PoolVector3Array( -0.681473, 0.501452, 0.0499668, -0.0453298, -0.808289, -0.422336, -0.287503, 1.98422, 3.27149, -0.0263753, -0.319308, 0.277562, 0.211185, -0.271242, -0.129593, -0.702265, 1.97101, 1.42616, -0.404719, -0.395793, 0.304124, 0.250978, -0.285766, -0.20488, -0.182144, 1.97831, 0.444753, -0.5527, -0.120928, -0.0833318, 0.5527, 0.120928, 0.0833318, 0.780294, 1.95689, -0.274509, -0.465314, 0.0219152, 0.559101, 0.465314, -0.0219152, -0.559101, 1.30247, 0.0139077, -0.142204, -0.690027, -0.0455682, 0.313123, 0.690027, 0.0455682, -0.313123, 2.53523, 0.0637698, -0.73445 ),
 "tilts": PoolRealArray( 0, 0, 0, 0, 0, 0 )
 }
 
+[sub_resource type="Shader" id=58]
+code = "shader_type spatial;
+render_mode skip_vertex_transform;
+render_mode unshaded;
+
+const float RAY_MISS = -1e20;
+
+// \\\"tangent-facing\\\" code and \\\"rounded end\\\" code was removed
+// for this particular shader
+
+uniform float line_width = 0.05;
+float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
+					inout vec3 normal, inout vec3 tangent){
+	vec3 dir_to_next_point = normal;
+	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
+	
+	float is_end = 0.5-uv.x;
+	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
+	
+	float side = sign(float(uv.y > 0.5)-0.5);
+	vertex += (perp*side) * width;
+	
+	tangent = perp;
+	normal = cross(perp,dir_to_next_point);
+	tangent = cross(tangent,normal);
+	
+	return is_end;
+}
+
+mat3 rotation3dX(float angle) {
+	float s = sin(angle);
+	float c = cos(angle);
+
+	return mat3(
+		vec3(1.0, 0.0, 0.0),
+		vec3(0.0, c, s),
+		vec3(0.0, -s, c)
+	);
+}
+
+varying mat3 TBN;
+varying mat3 rot;
+varying mat3 mv;
+varying float is_end;
+void vertex(){
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	
+	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
+	
+	BINORMAL = cross(TANGENT,NORMAL);
+	
+	TBN = mat3(
+		TANGENT,
+		-BINORMAL,
+		NORMAL
+	);
+	vec3 yeds = MODELVIEW_MATRIX[1].xyz * TBN;
+	float a1 = atan(-yeds.x,yeds.z);
+	rot = rotation3dX( a1 );
+	TBN = TBN * rot;
+	
+	mv = mat3(WORLD_MATRIX)*mat3(CAMERA_MATRIX)*TBN;
+	
+	rot = mat3(WORLD_MATRIX) * rot;
+}
+
+vec2 cylIntersect( in vec3 ro, in vec3 rd, in vec3 cb, in vec3 ca, float cr )
+{
+    vec3  oc = ro - cb;
+    float card = dot(ca,rd);
+    float caoc = dot(ca,oc);
+    float a = 1.0 - card*card;
+    float b = dot( oc, rd) - caoc*card;
+    float c = dot( oc, oc) - caoc*caoc - cr*cr;
+    float h = b*b - a*c;
+    if( h<0.0 ) return vec2(RAY_MISS); //no intersection
+    h = sqrt(h);
+    return vec2(-b-h,-b+h)/a;
+}
+
+vec3 cylNormal(vec3 u, vec3 dir, vec3 radius) {
+	return (u-dot(u,dir)*dir)/radius;
+}
+
+float raycast(vec3 ro, vec3 rd){
+	return cylIntersect(ro,rd,vec3(0.0),vec3(1.0,0.0,0.0),0.508).x;
+}
+
+vec2 hash22(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
+	p3 += dot(p3, p3.yzx+33.33);
+	return fract((p3.xx+p3.yz)*p3.zy);
+}
+
+uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.5),1.0);
+
+uniform float angle = 0.0;
+float get_x(float x) {
+	x += angle;
+	return fract((x*0.157)+0.5);
+}
+
+void fragment() {
+	vec3 ro = vec3(UV-0.5,0.0) * rot;
+	vec3 rd = -VIEW * TBN;
+	
+	float hit = raycast(ro, rd);
+	
+	vec3 hit_pos = ro + (rd * hit);
+//	vec3 hit_normal = getNormal(hit_pos);
+//	NORMAL = TBN * hit_normal;
+	
+	ROUGHNESS = 0.8;
+	
+	ALBEDO = color.rgb;
+	
+	mat3 local_TBN = mv;
+	vec3 normal = mv*cylNormal(hit_pos,vec3(1.0,0.0,0.0),vec3(0.5));
+	vec2 uvv;
+	uvv.x = get_x(atan(normal.x,normal.y));
+	uvv.y = UV.x/UV2.x;
+	ALBEDO = vec3(-(normal).x);
+}"
+
 [sub_resource type="ShaderMaterial" id=7]
-shader = ExtResource( 8 )
-shader_param/line_width = 0.031
-shader_param/tangent_facing = false
-shader_param/rounded = false
-shader_param/uv_matches_width = true
-shader_param/tex_stretch = true
-shader_param/tex_scale = Vector2( 1, 1 )
+shader = SubResource( 58 )
+shader_param/line_width = 0.051
 shader_param/color = Color( 0.164706, 0.164706, 0.164706, 1 )
-shader_param/metallic = 0.0
-shader_param/specular = 0.5
-shader_param/roughness = 0.5
-shader_param/tube_normal = true
+shader_param/angle = 0.0
 
 [sub_resource type="Curve3D" id=8]
 bake_interval = 0.22
 _data = {
-"points": PoolVector3Array( 0.185279, -0.620741, -0.265847, -0.185279, 0.620741, 0.265847, 0.164175, 0.564023, -0.446867, 0.176258, 0.985339, -0.464011, -0.176258, -0.985339, 0.464011, -0.435987, 0.312722, 1.09197 ),
+"points": PoolVector3Array( 0.185279, -0.620741, -0.265847, -0.185279, 0.620741, 0.265847, -0.0542579, 0.474095, -0.305593, 0.176258, 0.985339, -0.464011, -0.176258, -0.985339, 0.464011, -0.435987, 0.312722, 1.09197 ),
 "tilts": PoolRealArray( 0, 0 )
 }
 
@@ -87,40 +210,57 @@ shader_param/alpha_curve = 0.5
 shader_param/width_curve = SubResource( 50 )
 
 [sub_resource type="Curve3D" id=10]
-bake_interval = 0.1
+bake_interval = 0.19
 _data = {
-"points": PoolVector3Array( -1.56633, 1.435, 1.11107, 1.56633, -1.435, -1.11107, -1.4476, 1.03261, 3.57529, -1.27593, 0.641668, -1.2957, 1.27593, -0.641668, 1.2957, 2.35938, 1.03827, 3.9368 ),
+"points": PoolVector3Array( -1.56633, 1.435, 1.11107, 1.56633, -1.435, -1.11107, -1.4476, 1.03261, 3.57529, -1.08042, -0.243951, 0.729692, 1.08042, 0.243951, -0.729692, 2.11874, 0.480005, 1.54487 ),
 "tilts": PoolRealArray( 0, 0 )
 }
 
 [sub_resource type="ShaderMaterial" id=11]
 shader = ExtResource( 6 )
-shader_param/line_width = 0.05
+shader_param/line_width = 0.044
+shader_param/ao_samples = 32.0
 shader_param/color = Color( 1, 1, 0.5, 1 )
-shader_param/twirl_aspect = 1.507
+shader_param/twirl_aspect = 2.0
+shader_param/ao_power = 1.0
+shader_param/blue_noise = ExtResource( 12 )
+
+[sub_resource type="ShaderMaterial" id=57]
+shader = ExtResource( 11 )
+shader_param/line_width = 0.025
+shader_param/twirl_aspect = 2.0
+shader_param/angle = 0.0
+shader_param/link_radius = 0.15
+shader_param/link_thickness = 0.05
+shader_param/repeat_size = 1.0
+shader_param/repeat_size_b = 0.1
+shader_param/roughness = 0.25
+shader_param/metallic = 1.0
+shader_param/color = Color( 0.9, 0.9, 0.9, 1 )
 
 [sub_resource type="Curve3D" id=32]
-bake_interval = 0.1
+bake_interval = 0.15
 _data = {
 "points": PoolVector3Array( 0, 0, 0, 0, 0, 0, -0.19442, 0.0866818, -1.76063, 2.33724, -1.66999, -3.70093, -2.33724, 1.66999, 3.70093, -0.721755, 2.50279, -5.27716, 1.3031, -0.628219, -3.35566, -1.3031, 0.628219, 3.35566, -0.0607967, 0.469147, 0.81765, -0.0909576, -0.0492868, 2.82991, 0.0909576, 0.0492868, -2.82991, -2.38183, 4.45401, -0.710008, 0.0524731, 1.97994, -1.77644, -0.0524731, -1.97994, 1.77644, -0.469312, 2.28247, -3.2984, 0.282413, -0.803169, -1.42656, -0.282413, 0.803169, 1.42656, -2.89779, 1.16475, 3.16977, -3.40217, 2.63917, 1.69681, 3.40217, -2.63917, -1.69681, 0.509509, 4.02975, 2.02187 ),
 "tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0 )
 }
 
-[sub_resource type="Curve" id=47]
-_data = [ Vector2( 0, 1 ), 0.519532, 0.0, 0, 0, Vector2( 1, 0 ), -3.0, 0.0, 0, 0 ]
+[sub_resource type="Curve" id=53]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), -3.0, 0.0, 0, 0 ]
 
-[sub_resource type="CurveTexture" id=48]
-curve = SubResource( 47 )
+[sub_resource type="CurveTexture" id=54]
+width = 256
+curve = SubResource( 53 )
 
 [sub_resource type="ShaderMaterial" id=33]
 shader = ExtResource( 2 )
-shader_param/line_width = 0.0
-shader_param/glow_width = 0.4
+shader_param/line_width = 0.067
+shader_param/glow_width = 0.214
 shader_param/tangent_facing = false
 shader_param/rounded = true
-shader_param/color = Color( 0, 0.396078, 0.956863, 1 )
-shader_param/curve = 0.2
-shader_param/width_curve = SubResource( 48 )
+shader_param/color = Color( 0, 0.4, 1, 1 )
+shader_param/curve = 0.094
+shader_param/width_curve = SubResource( 54 )
 
 [sub_resource type="Curve3D" id=12]
 bake_interval = 0.09
@@ -373,166 +513,51 @@ shader_param/roughness = 0.5
 [sub_resource type="Curve3D" id=42]
 bake_interval = 0.01
 _data = {
-"points": PoolVector3Array( -0.072227, 0.0471233, -0.778171, 0, 0, 0, -6.01298, 1.06462, -0.69593, 0, 0, 0, -0.133498, -0.362062, -0.450268, -4.21014, 1.16929, -0.741142 ),
+"points": PoolVector3Array( -0.431866, 0.308713, -0.33343, 0.431866, -0.308713, 0.33343, -1.08351, 0.776258, -1.53599, -0.585661, -0.271522, -0.314762, 0.585661, 0.271522, 0.314762, 0.437512, 0.882522, 0.619004 ),
 "tilts": PoolRealArray( 0, 0 )
 }
 
-[sub_resource type="ShaderMaterial" id=43]
+[sub_resource type="ShaderMaterial" id=52]
 shader = ExtResource( 9 )
-shader_param/line_width = 0.063
-shader_param/twirl_aspect = 0.5
+shader_param/line_width = 0.02
+shader_param/stretch = 8.0
 shader_param/angle = 0.0
-shader_param/repeat_size = 0.3
+shader_param/repeat_size = 0.04
+shader_param/spokes = 9.0
 shader_param/rot_angle = 0.0
-shader_param/rot_period = 0.671
+shader_param/rot_period = 3.236
+shader_param/roughness = 1.0
+shader_param/color = Color( 0.1, 0.2, 0.1, 1 )
+shader_param/g_color = Color( 0.3, 0.6, 0.3, 1 )
+
+[sub_resource type="Curve3D" id=55]
+_data = {
+"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, 0.138806, 0.352063, -1.6087, 0.0670831, 0.15438, -0.956504, -0.0670831, -0.15438, 0.956504, 0.282547, 1.0739, 0.788092 ),
+"tilts": PoolRealArray( 0, 0 )
+}
+
+[sub_resource type="ShaderMaterial" id=56]
+shader = ExtResource( 10 )
+shader_param/line_width = 0.033
+shader_param/twirl_aspect = 2.0
+shader_param/angle = 0.0
+shader_param/repeat_size = 0.1
+shader_param/rot_angle = 0.0
+shader_param/rot_period = 29.124
 shader_param/roughness = 0.5
 shader_param/color = Color( 0.1, 0.1, 0.1, 1 )
-
-[sub_resource type="Shader" id=44]
-code = "shader_type spatial;
-render_mode cull_disabled;
-
-varying mat3 TBN;
-varying vec3 eye_origin;
-varying vec3 eye_dir;
-void vertex(){
-	eye_origin = (inverse(WORLD_MATRIX) * vec4(CAMERA_MATRIX[3].xyz,1.0)).xyz;
-	eye_dir = VERTEX - eye_origin;
-	TBN = mat3(MODELVIEW_MATRIX);
-}
-
-mat3 rotation3dX(float angle) {
-	float s = sin(angle);
-	float c = cos(angle);
-
-	return mat3(
-		vec3(1.0, 0.0, 0.0),
-		vec3(0.0, c, s),
-		vec3(0.0, -s, c)
-	);
-}
-
-float sdCylinder( vec3 p, float c ){
-	return length(p.yz)-c;
-}
-
-float scene(vec3 p){
-	p = p*rotation3dX(p.x*3.1415);
-	float o1 = sdCylinder(p - vec3(0.0,-0.2,0.0),0.2);
-	float o2 = sdCylinder(p - vec3(0.0,0.1,0.2),0.2);
-	float o3 = sdCylinder(p - vec3(0.0,0.1,-0.2),0.2);
-	
-	float rope = min(o1,min(o2,o3));
-	
-	return rope;
-}
-
-vec3 getNormal( in vec3 p )
-{
-    const float h = 0.0001;
-    const vec2 k = vec2(1,-1);
-    return normalize( k.xyy*scene( p + k.xyy*h ) + 
-                      k.yyx*scene( p + k.yyx*h ) + 
-                      k.yxy*scene( p + k.yxy*h ) + 
-                      k.xxx*scene( p + k.xxx*h ) );
-}
-
-float raymarch(vec3 ro, vec3 rd){
-	float total_dist = 0.0;
-	
-	for(int i=0;i<100;i++){
-		// culling below 3.0 is excessive
-		// and even more visible at grazing angles
-//		if (total_dist > 30.0) { break; }
-		
-		vec3 ray = ro + (rd * total_dist);
-		
-		float dist = scene(ray);
-		
-		if (dist < 0.005){
-			return total_dist;
-		}
-		
-		total_dist += dist;
-	}
-	
-	return -1.0;
-}
-
-vec2 hash22(vec2 p)
-{
-	vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
-	p3 += dot(p3, p3.yzx+33.33);
-	return fract((p3.xx+p3.yz)*p3.zy);
-}
-float ao(vec3 p, vec3 n, vec2 fragcoord)
-{
-	vec3 t = normalize(cross(n,vec3(0.0,1.0,0.0)));
-	vec3 b = normalize(cross(t,n));
-	
-	float inv_t = 1.0/10.0;
-	
-	float occ = 0.0;
-	for (int i=0;i<10;i++)
-	{
-		vec2  aa = ( hash22(fragcoord+TIME*float(i+1)) );
-		float ra = sqrt(aa.y);
-		float rx = ra*cos(6.2831*aa.x); 
-		float ry = ra*sin(6.2831*aa.x);
-		float rz = sqrt( 1.0-aa.y );
-		vec3  dir = vec3( rx*t + ry*b + rz*n );
-		vec3 no;
-		float hit = raymarch(p+dir*0.1,dir);
-		if (hit < 0.0)
-			occ += inv_t;
-	}
-	
-	return occ;
-}
-
-uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.5),1.0);
-uniform float twirl_aspect = 0.5;
-
-void fragment(){
-	// We can't do raycasts with objects
-	// that intersect Z =< 0.0 in tangent-space; it gets clipped.
-	// So the rope is actually below the line surface.
-	vec3 ro = eye_origin.zyx*10.0;
-	vec3 rd = eye_dir.zyx;
-	
-	
-	float hit = raymarch(ro, rd);
-	if (hit < 0.0) { discard; }
-	
-	vec3 hit_pos = ro + rd * hit;
-	vec3 hit_normal = TBN * getNormal(hit_pos);
-	NORMAL = hit_normal;
-	
-	float ao = ao(hit_pos, hit_normal, FRAGCOORD.xy);
-	ALBEDO = color.rgb * ao;
-	ROUGHNESS = 0.5;
-}"
-
-[sub_resource type="ShaderMaterial" id=45]
-shader = SubResource( 44 )
-shader_param/color = Color( 1, 1, 0.5, 1 )
-shader_param/twirl_aspect = 0.5
-
-[sub_resource type="PrismMesh" id=46]
-material = SubResource( 45 )
-size = Vector3( 0.1, 0.1, 1.938 )
 
 [node name="Spatial" type="Spatial"]
 
 [node name="wormspinner" type="Spatial" parent="."]
-transform = Transform( 0.978218, 0, -0.207512, 0, 0.999999, 0, 0.207511, 0, 0.978228, 0.399602, 0.016, 3.531 )
+transform = Transform( -0.993138, 0, -0.116817, 0, 0.999999, 0, 0.116816, 0, -0.993148, -0.356825, 0.016, 3.531 )
 script = SubResource( 1 )
 mul = 1.59
 
 [node name="worm" type="Spatial" parent="wormspinner"]
 transform = Transform( 1.42087e-08, 0.325059, -0.945694, 1, -4.37114e-08, -4.41775e-14, -4.13376e-08, -0.945694, -0.325059, 0.611, 0.05, 0.17 )
 script = ExtResource( 4 )
-max_points = 95
+max_points = 150
 material = SubResource( 31 )
 
 [node name="MeshInstance2" type="MeshInstance" parent="wormspinner/worm"]
@@ -544,7 +569,7 @@ transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0.047, 0, -0.026 )
 mesh = SubResource( 36 )
 
 [node name="wire" type="Path" parent="."]
-transform = Transform( -0.422618, 0, 0.906308, 0, 1, 0, -0.906308, 0, -0.422618, 1.01146, -0.000974536, 3.21569 )
+transform = Transform( -0.422618, 0, 0.906308, 0, 1, 0, -0.906308, 0, -0.422618, 1.06181, 0.0528419, 3.14483 )
 curve = SubResource( 6 )
 script = ExtResource( 3 )
 material = SubResource( 7 )
@@ -557,10 +582,16 @@ render_mode = 1
 material = SubResource( 9 )
 
 [node name="rope" type="Path" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.2, -0.1 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.100197, 0.2, -0.268891 )
 curve = SubResource( 10 )
 script = ExtResource( 3 )
 material = SubResource( 11 )
+
+[node name="rope2" type="Path" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.100197, 0.297392, -0.433491 )
+curve = SubResource( 10 )
+script = ExtResource( 3 )
+material = SubResource( 57 )
 
 [node name="glow" type="Path" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -8.10647, 0.547944, 0.487238 )
@@ -608,11 +639,11 @@ script = ExtResource( 3 )
 material = SubResource( 13 )
 
 [node name="2" type="OmniLight" parent="Spatial"]
-transform = Transform( -0.0435531, 0.28273, 1.97944, -0.598798, 1.88719, -0.28273, -1.90776, -0.598798, 0.0435526, 0.31318, 0.431668, -0.42398 )
+transform = Transform( -0.0435531, 0.282731, 1.97944, -0.598798, 1.88719, -0.282731, -1.90776, -0.598798, 0.0435527, 0.31318, 0.431668, -0.42398 )
 light_color = Color( 1, 0.94, 1, 1 )
 light_energy = 2.0
 shadow_enabled = true
-shadow_bias = 0.05
+shadow_bias = 0.048
 omni_range = 20.0
 omni_attenuation = 2.0
 omni_shadow_mode = 0
@@ -670,11 +701,25 @@ damping = 0.738
 material = SubResource( 41 )
 
 [node name="LinePath3D" type="Path" parent="."]
-transform = Transform( 0.998648, 0.0519874, 0, -0.0519874, 0.998648, 0, 0, 0, 1, 7.01298, -0.0646176, 3.69593 )
+transform = Transform( 0.998648, 0.0519874, 0, -0.0519874, 0.998648, 0, 0, 0, 1, 2.53022, 1.1862, 3.69593 )
 curve = SubResource( 42 )
 script = ExtResource( 3 )
-material = SubResource( 43 )
+material = SubResource( 52 )
 
-[node name="MeshInstance" type="MeshInstance" parent="."]
-transform = Transform( 0.661299, 0.127601, -0.73919, 0, 0.985426, 0.170106, 0.750123, -0.112491, 0.651661, 0.678746, 1.60611, 1.46029 )
-mesh = SubResource( 46 )
+[node name="OmniLight" type="OmniLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.693212, 0.58607, 1.78134 )
+visible = false
+
+[node name="OmniLight2" type="OmniLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.442994, 0.503658, 2.12577 )
+visible = false
+
+[node name="OmniLight3" type="OmniLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.101659, 0.201528, 1.76163 )
+visible = false
+shadow_enabled = true
+
+[node name="LinePath3D2" type="Path" parent="."]
+curve = SubResource( 55 )
+script = ExtResource( 3 )
+material = SubResource( 56 )

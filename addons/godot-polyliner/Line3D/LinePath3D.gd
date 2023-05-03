@@ -41,7 +41,7 @@ func set_renderer(value):
 			match value:
 				Renderer.STATIC: _show_mesh_instance()
 				Renderer.IMMEDIATE: _show_imm_geo()
-	redraw()
+	_rd()
 
 func _show_imm_geo():
 	push_warning("Immediate renderer is not implemented.")
@@ -57,22 +57,22 @@ func set_render_mode(value):
 		_linegen.render_mode = Mesh.PRIMITIVE_TRIANGLES
 	else:
 		_linegen.render_mode = Mesh.PRIMITIVE_LINE_STRIP
-	redraw()
+	_rd()
 
 func set_uv_mode(value):
 	uv_mode = value
-	redraw()
+	_rd()
 
 func set_uv_size(value):
 	uv_size = value
-	redraw()
+	_rd()
 
 func set_material(mat):
 	if mat == null:
 		material = load("res://addons/godot-polyliner/default_line_material.tres").duplicate(true)
 	if mat is ShaderMaterial:
 		material = mat
-		redraw()
+		_rd()
 
 var _mesh_instance = null
 var _imm_sf = ImmediateSurface.new()
@@ -97,7 +97,7 @@ func _enter_tree():
 	set_uv_size(uv_size)
 	set_material(material)
 	
-	redraw()
+	_rd()
 
 func _draw():
 	var points = Array(curve.get_baked_points())
@@ -110,10 +110,10 @@ func _draw():
 	
 	_update_material()
 
-func redraw():
+func _rd():
 	call_deferred("_draw")
 
 func _ready():
-	if not is_connected("curve_changed",self,"redraw"):
-		connect("curve_changed",self,"redraw")
+	if not is_connected("curve_changed",self,"_rd"):
+		connect("curve_changed",self,"_rd")
 

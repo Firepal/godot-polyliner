@@ -41,7 +41,7 @@ void vertex(){
 
 uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.0),1.0);
 void fragment() {
-	ALPHA = 1.0-pow(smoothstep(1.0,0.0,UV.x),0.05);
+	ALPHA = 1.0-pow(smoothstep(1.0,0.0,UV.x),0.3);
 	ALPHA *= smoothstep(1.0,0.0,abs(UV.y*2.0-1.0));
 	
 	ALBEDO = mix(color.rgb,vec3(1.0),ALPHA * color.a);
@@ -82,7 +82,7 @@ void vertex(){
 
 void fragment(){
 	float circ = smoothstep(0.01,1.0,dot(UV,UV));
-	circ = 1.0-pow(circ,0.2);
+	circ = 1.0-pow(circ,0.02);
 	const vec3 green = vec3(0.0,1.0,0.0);
 	const vec3 white = vec3(1.0);
 	ALBEDO = mix(green,white,circ);

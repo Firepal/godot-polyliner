@@ -2,8 +2,8 @@ tool
 extends Spatial
 
 enum SamplingMode {
-	Idle,
-	Physics,
+	Process,
+	PhysicsProcess,
 	None
 }
 
@@ -18,7 +18,7 @@ var _mesh_instance = MeshInstance.new()
 
 var points = []
 
-export(SamplingMode) var sampling_mode = SamplingMode.Idle setget set_sampling_mode
+export(SamplingMode) var sampling_mode = SamplingMode.Process setget set_sampling_mode
 export(int,0,1000) var max_points = 10 setget set_max_points
 export(float,0.0,1.0,0.002) var damping = 0.5
 export(TangentAxis) var tangent_axis = TangentAxis.X
@@ -55,7 +55,7 @@ func set_sampling_mode(mode):
 	if sampling_mode == SamplingMode.None and mode != SamplingMode.None:
 		damped_transform = global_transform
 	sampling_mode = mode
-	set_physics_process(mode == SamplingMode.Physics)
+	set_physics_process(mode == SamplingMode.PhysicsProcess)
 
 func set_interpolate_skip(val):
 	interpolate_skip = val
@@ -96,12 +96,15 @@ func _redraw():
 	if visible:
 		_mesh_instance.mesh = _linegen.draw_from_xforms_strip(points,global_transform.inverse(),tangent_axis)
 
+func _skipped_frames(frames):
+	return fmod(frames,max(skip_frames+1,1)) < 0.001
+
 var _mesh_xform : Transform = Transform.IDENTITY
 func _process(delta):
 	
-	if fmod(Engine.get_idle_frames(),max(skip_frames+1,1)) < 0.001:
+	if _skipped_frames(Engine.get_idle_frames()):
 		_mesh_xform = global_transform
-		if sampling_mode == SamplingMode.Idle:
+		if sampling_mode == SamplingMode.Process:
 			push_xform(global_transform)
 		elif sampling_mode == SamplingMode.None:
 			push_xform(null)
@@ -114,7 +117,7 @@ func _process(delta):
 #		_debug_spheres()
 
 func _physics_process(delta):
-	if fmod(Engine.get_physics_frames(), max(skip_frames+1,1)) < 0.001:
+	if _skipped_frames(Engine.get_physics_frames()):
 		push_xform(global_transform)
 
 # For testing correspondance between

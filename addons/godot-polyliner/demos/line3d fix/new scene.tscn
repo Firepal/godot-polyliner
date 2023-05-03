@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://addons/godot-polyliner/demos/line3d fix/Line3D.gd" type="Script" id=1]
+[ext_resource path="res://addons/godot-polyliner/shaders/line_pbr.gdshader" type="Shader" id=2]
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = ExtResource( 2 )
+shader_param/line_width = 0.055
+shader_param/tangent_facing = false
+shader_param/rounded = true
+shader_param/uv_matches_width = true
+shader_param/tex_stretch = true
+shader_param/tex_scale = Vector2( 0.972, 1 )
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/metallic = 1.0
+shader_param/specular = 0.5
+shader_param/roughness = 0.785
+shader_param/tube_normal = true
+
+[sub_resource type="PlaneMesh" id=1]
+
+[node name="Spatial" type="Spatial"]
+
+[node name="Line3D" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0 )
+script = ExtResource( 1 )
+material = SubResource( 3 )
+points = PoolVector3Array( 0, 0, 0, 1, 0, 0 )
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 5 )
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+mesh = SubResource( 1 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.0676496, 0.997709, 0, -0.997709, 0.0676496, 0.0553598, 1.7816, -3.62403 )
+
+[node name="Label" type="Label" parent="."]
+margin_left = 111.0
+margin_top = 58.0
+margin_right = 151.0
+margin_bottom = 72.0
