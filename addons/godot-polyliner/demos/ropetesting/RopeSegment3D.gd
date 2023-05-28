@@ -1,7 +1,7 @@
-extends RigidBody
+extends RigidBody3D
 
-onready var joint = $Generic6DOFJoint
-onready var col_shape = $CollisionShape.shape
+@onready var joint = $Generic6DOFJoint3D
+@onready var col_shape = $CollisionShape3D.shape
 
 var rope = null
 var id : int = 0

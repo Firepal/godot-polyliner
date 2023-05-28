@@ -2,7 +2,7 @@
 
 [resource]
 code = "shader_type spatial;
-render_mode depth_draw_alpha_prepass;
+render_mode depth_draw_opaque;
 //render_mode unshaded;
 
 float line_process(float width, inout vec3 vertex, mat4 world_mat, vec3 cam_pos, vec3 dir_to_next_vertex, vec2 uv,
@@ -33,24 +33,24 @@ varying float is_end;
 varying float end_sign;
 void vertex(){
 	float yes = 0.0;
-	is_end = line_process(line_width,VERTEX,WORLD_MATRIX,CAMERA_MATRIX[3].xyz,NORMAL,UV2,
+	is_end = line_process(line_width,VERTEX,MODEL_MATRIX,INV_VIEW_MATRIX[3].xyz,NORMAL,UV2,
 							NORMAL,TANGENT,yes);
 	BINORMAL = normalize(cross(NORMAL,TANGENT));
 	end_sign = (((is_end*yes)*0.5)+0.5);
 }
 
-uniform vec4 albedo_color : hint_color = vec4(vec3(0.8),1.0);
+uniform vec4 albedo_color : source_color = vec4(vec3(0.8),1.0);
 uniform float metallic : hint_range(0.0,1.0) = 0.0;
 uniform float roughness : hint_range(0.0,1.0) = 0.5;
 
 void fragment(){
 	// Cylindrical normal
-	NORMALMAP.x = UV.y;
-	NORMALMAP.y = end_sign;
+	NORMAL_MAP.x = UV.y;
+	NORMAL_MAP.y = end_sign;
 	
 	ALBEDO = vec3(albedo_color.rgb);
 	ALPHA = 1.0-length(vec2(is_end*0.5,UV.y-0.5));
-	ALPHA_SCISSOR = step(0.01,is_end)*0.5;
+	ALPHA_SCISSOR_THRESHOLD = step(0.01,is_end)*0.5;
 	
 	METALLIC = metallic;
 	ROUGHNESS = roughness;

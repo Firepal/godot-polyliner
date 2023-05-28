@@ -43,8 +43,8 @@ float sdCylinder( vec3 p, float c ){
 
 varying vec3 eye_dir;
 void vertex(){
-	vec3 world_cam = CAMERA_MATRIX[3].xyz;
-	vec3 world_vertex = (WORLD_MATRIX * vec4(VERTEX,1.0)).xyz;
+	vec3 world_cam = INV_VIEW_MATRIX[3].xyz;
+	vec3 world_vertex = (MODEL_MATRIX * vec4(VERTEX,1.0)).xyz;
 	
 	BINORMAL = cross(TANGENT,NORMAL);
 	mat3 TBN = mat3(
@@ -52,7 +52,7 @@ void vertex(){
 		BINORMAL,
 		NORMAL
 	);
-	mat3 world_TBN = mat3(WORLD_MATRIX) * TBN;
+	mat3 world_TBN = mat3(MODEL_MATRIX) * TBN;
 	
 	eye_dir = (world_vertex - world_cam) * world_TBN;
 }

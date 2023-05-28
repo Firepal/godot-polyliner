@@ -1,4 +1,4 @@
-tool
+@tool
 extends "res://addons/godot-polyliner/Line3D/Line3D.gd"
 
 
@@ -9,13 +9,13 @@ extends "res://addons/godot-polyliner/Line3D/Line3D.gd"
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	OS.vsync_enabled = false
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if (false) else DisplayServer.VSYNC_DISABLED)
 
 func randpoint():
 	var p = Vector3()
-	p.x = rand_range(-1,1)
-	p.y = rand_range(-1,1)
-	p.z = rand_range(-1,1)
+	p.x = randf_range(-1,1)
+	p.y = randf_range(-1,1)
+	p.z = randf_range(-1,1)
 	return p
 
 func vCub(a: Vector3, b: Vector3, c: Vector3, d: Vector3, t: float):

@@ -1,9 +1,9 @@
-tool
+@tool
 extends Resource
 
 class_name LineGen3D
 
-var immediate_canvas : ImmediateGeometry = null
+var immediate_canvas : ImmediateMesh = null
 
 var render_mode = Mesh.PRIMITIVE_TRIANGLES
 var uv_scale = 1.0
@@ -16,7 +16,7 @@ var _is = ImmediateSurface.new()
 # inv_origin_xform = the inverse of the Trail3D node's transform
 # it is used to keep vertex float values near 0.0
 func draw_from_xforms_strip(p : Array = Array(),
-					inv_origin_xform : Transform = Transform(),
+					inv_origin_xform : Transform3D = Transform3D(),
 					tangent_axis : int = 0) -> ArrayMesh:
 	_sf.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	
@@ -49,25 +49,31 @@ func draw_from_xforms_strip(p : Array = Array(),
 			var uv1x = 1.0-(inv_ps*(real_i-1))
 			var extras_uv2 = Vector2(1.0, inv_ps)
 			
-			_sf.add_tangent( p1_tangent )
-			_sf.add_normal( last )
+			_sf.set_tangent( p1_tangent )
+			_sf.set_normal( last )
 			
-			_sf.add_uv( Vector2(uv1x,1.0) )
-			_sf.add_uv2( extras_uv2 )
+			_sf.set_uv( Vector2(uv1x,1.0) )
+			_sf.set_uv2( extras_uv2 )
 			_sf.add_vertex( p1.origin )
 			
-			_sf.add_tangent( p1_tangent )
-			_sf.add_normal( last )
+			_sf.set_tangent( p1_tangent )
+			_sf.set_normal( last )
 			
-			_sf.add_uv( Vector2(uv1x,0.0) )
-			_sf.add_uv2( extras_uv2 )
+			_sf.set_uv( Vector2(uv1x,0.0) )
+			_sf.set_uv2( extras_uv2 )
 			_sf.add_vertex( p1.origin )
 			
 	
-	return _sf.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT)
+	return _sf.commit(null,
+		Mesh.ARRAY_FORMAT_VERTEX+
+		Mesh.ARRAY_FORMAT_NORMAL+
+		Mesh.ARRAY_FORMAT_COLOR+
+		Mesh.ARRAY_FORMAT_TEX_UV+
+		Mesh.ARRAY_FORMAT_TEX_UV2
+	)
 
 func draw_from_xforms_indexed(p : Array = Array(),
-					inv_origin_xform : Transform = Transform()) -> ArrayMesh:
+					inv_origin_xform : Transform3D = Transform3D()) -> ArrayMesh:
 	_sf.begin(render_mode)
 	
 	var last = null
@@ -106,14 +112,14 @@ func draw_from_xforms_indexed(p : Array = Array(),
 				point_i += verts
 				
 				_sf.add_color( p1c )
-				_sf.add_normal( p1.basis.x )
+				_sf.set_normal( p1.basis.x )
 				
-				_sf.add_uv( Vector2(uv1,1.0) )
-				_sf.add_uv2( Vector2(uv2,1.0) )
+				_sf.set_uv( Vector2(uv1,1.0) )
+				_sf.set_uv2( Vector2(uv2,1.0) )
 				_sf.add_vertex( p1.origin )
 				
-				_sf.add_uv( Vector2(uv1,0.0) )
-				_sf.add_uv2( Vector2(uv2,0.0) )
+				_sf.set_uv( Vector2(uv1,0.0) )
+				_sf.set_uv2( Vector2(uv2,0.0) )
 				_sf.add_vertex( p1.origin )
 				
 				if p[i+1] != null:
@@ -126,10 +132,16 @@ func draw_from_xforms_indexed(p : Array = Array(),
 					_sf.add_index(i + 2)
 					verts += 1
 	
-	return _sf.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT-Mesh.ARRAY_COMPRESS_COLOR)
+	return _sf.commit(null,
+		Mesh.ARRAY_FORMAT_VERTEX+
+		Mesh.ARRAY_FORMAT_NORMAL+
+		Mesh.ARRAY_FORMAT_COLOR+
+		Mesh.ARRAY_FORMAT_TEX_UV+
+		Mesh.ARRAY_FORMAT_TEX_UV2
+	)
 	
 func draw_from_xforms_indexed_olreliable(p : Array = Array(),
-					inv_origin_xform : Transform = Transform()) -> ArrayMesh:
+					inv_origin_xform : Transform3D = Transform3D()) -> ArrayMesh:
 	_sf.begin(render_mode)
 	
 	var last = null
@@ -158,12 +170,12 @@ func draw_from_xforms_indexed_olreliable(p : Array = Array(),
 			var uv1 = uv2
 			
 			_sf.add_color( p1c )
-			_sf.add_normal( perp )
-			_sf.add_uv( Vector2(uv1,1.0) )
-			_sf.add_uv2( Vector2(uv2,1.0) )
+			_sf.set_normal( perp )
+			_sf.set_uv( Vector2(uv1,1.0) )
+			_sf.set_uv2( Vector2(uv2,1.0) )
 			_sf.add_vertex( p1 )
-			_sf.add_uv( Vector2(uv1,0.0) )
-			_sf.add_uv2( Vector2(uv2,0.0) )
+			_sf.set_uv( Vector2(uv1,0.0) )
+			_sf.set_uv2( Vector2(uv2,0.0) )
 			_sf.add_vertex( p1 )
 			
 			var overflow = i > ps-2
@@ -179,15 +191,21 @@ func draw_from_xforms_indexed_olreliable(p : Array = Array(),
 				_sf.add_index(i + 2)
 			
 			verts += 1
-	return _sf.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT-Mesh.ARRAY_COMPRESS_COLOR)
+	return _sf.commit(null,
+		Mesh.ARRAY_FORMAT_VERTEX+
+		Mesh.ARRAY_FORMAT_NORMAL+
+		Mesh.ARRAY_FORMAT_COLOR+
+		Mesh.ARRAY_FORMAT_TEX_UV+
+		Mesh.ARRAY_FORMAT_TEX_UV2
+	)
 
 # Experimental, do not use
-func draw_from_points_arrays(p : PoolVector3Array = PoolVector3Array(),
+func draw_from_points_arrays(p : PackedVector3Array = PackedVector3Array(),
 						total_length : float = 1.0) -> ArrayMesh:
-	if p.empty():
+	if p.is_empty():
 #		push_warning("p is empty, mesh will not be updated")
 		return ArrayMesh.new()
-	assert(p is PoolVector3Array, "p must be PoolVector3Array")
+	assert(p is PackedVector3Array) #,"p must be PackedVector3Array")
 	var uvs = total_length
 	
 	var vert_arr = []
@@ -221,32 +239,38 @@ func draw_from_points_arrays(p : PoolVector3Array = PoolVector3Array(),
 			var uv2 = (float(ps-(i+1))/ps)*uvs
 			
 			_sf.add_color( p1c )
-			_sf.add_uv( Vector2(uv1,1.0) )
+			_sf.set_uv( Vector2(uv1,1.0) )
 			_sf.add_vertex( p1 )
-			_sf.add_uv( Vector2(uv1,0.0) )
+			_sf.set_uv( Vector2(uv1,0.0) )
 			_sf.add_vertex( p1 )
 			
 			_sf.add_color( p2c )
-			_sf.add_uv( Vector2(uv2,1.0) )
+			_sf.set_uv( Vector2(uv2,1.0) )
 			_sf.add_vertex( p2 )
 			
 			
 			_sf.add_color( p1c )
-			_sf.add_uv( Vector2(uv1,0.0) )
+			_sf.set_uv( Vector2(uv1,0.0) )
 			_sf.add_vertex( p1 )
 			
 			_sf.add_color( p2c )
-			_sf.add_uv( Vector2(uv2,0.0) )
+			_sf.set_uv( Vector2(uv2,0.0) )
 			_sf.add_vertex( p2 )
-			_sf.add_uv( Vector2(uv2,1.0) )
+			_sf.set_uv( Vector2(uv2,1.0) )
 			_sf.add_vertex( p2 )
 			
 			last = p2pc
 	
-	return _sf.commit(null,Mesh.ARRAY_COMPRESS_DEFAULT-Mesh.ARRAY_COMPRESS_COLOR)
+	return _sf.commit(null,
+		Mesh.ARRAY_FORMAT_VERTEX+
+		Mesh.ARRAY_FORMAT_NORMAL+
+		Mesh.ARRAY_FORMAT_COLOR+
+		Mesh.ARRAY_FORMAT_TEX_UV+
+		Mesh.ARRAY_FORMAT_TEX_UV2
+	)
 
 
-func draw_from_points_strip(p : PoolVector3Array = PoolVector3Array(),
+func draw_from_points_strip(p : PackedVector3Array = PackedVector3Array(),
 					line_length : float = 1.0
 					) -> ArrayMesh:
 	_sf.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
@@ -289,23 +313,23 @@ func draw_from_points_strip(p : PoolVector3Array = PoolVector3Array(),
 			var extras_uv2 = Vector2(line_length, inv_ps)
 			
 			
-			_sf.add_normal( dir )
+			_sf.set_normal( dir )
 			
-			_sf.add_uv( Vector2(uv1x,1.0) )
-			_sf.add_uv2( extras_uv2 )
+			_sf.set_uv( Vector2(uv1x,1.0) )
+			_sf.set_uv2( extras_uv2 )
 			_sf.add_vertex( p1 )
 			
-			_sf.add_normal( dir )
+			_sf.set_normal( dir )
 			
-			_sf.add_uv( Vector2(uv1x,0.0) )
-			_sf.add_uv2( extras_uv2 )
+			_sf.set_uv( Vector2(uv1x,0.0) )
+			_sf.set_uv2( extras_uv2 )
 			_sf.add_vertex( p1 )
 			
 			
 			if i < ps-2:
 				last_miter = p[i+2] - p1
 	
-	var compress = Mesh.ARRAY_COMPRESS_DEFAULT
+	var compress = Mesh.ARRAY_FORMAT_VERTEX+Mesh.ARRAY_FORMAT_NORMAL+Mesh.ARRAY_FORMAT_COLOR+Mesh.ARRAY_FORMAT_TEX_UV+Mesh.ARRAY_FORMAT_TEX_UV2
 	
 	# If vertex count > 1024, the method we use
 	# to have rounded caps breaks
@@ -314,6 +338,6 @@ func draw_from_points_strip(p : PoolVector3Array = PoolVector3Array(),
 	# We've enabled full-precision float for UV here
 	# it's a waste of bits (uses 64 bits instead of 32) but it's a quick and easy fix,
 	# and it's not as bad as using the entire vec4 COLOR buffer just to store a single float
-	compress -= Mesh.ARRAY_COMPRESS_TEX_UV
+#	compress -= Mesh.ARRAY_COMPRESS_TEX_UV
 	
 	return _sf.commit(null, compress)

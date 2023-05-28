@@ -1,15 +1,19 @@
 [remap]
 
-importer="ogg_vorbis"
-type="AudioStreamOGGVorbis"
-path="res://.import/jobinterview.ogg-a41a76eedf864561717b9c078a9bb7ce.oggstr"
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dcy5gtd26nqec"
+path="res://.godot/imported/jobinterview.ogg-a41a76eedf864561717b9c078a9bb7ce.oggvorbisstr"
 
 [deps]
 
 source_file="res://addons/godot-polyliner/demos/osc/jobinterview.ogg"
-dest_files=[ "res://.import/jobinterview.ogg-a41a76eedf864561717b9c078a9bb7ce.oggstr" ]
+dest_files=["res://.godot/imported/jobinterview.ogg-a41a76eedf864561717b9c078a9bb7ce.oggvorbisstr"]
 
 [params]
 
 loop=false
 loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

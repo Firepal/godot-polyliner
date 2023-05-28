@@ -1,5 +1,5 @@
-tool
-extends Spatial
+@tool
+extends Node3D
 
 enum SamplingMode {
 	Process,
@@ -14,25 +14,25 @@ enum TangentAxis {
 }
 
 var _linegen = LineGen3D.new()
-var _mesh_instance = MeshInstance.new()
+var _mesh_instance = MeshInstance3D.new()
 
 var points = []
 
-export(SamplingMode) var sampling_mode = SamplingMode.Process setget set_sampling_mode
-export(int,0,1000) var max_points = 10 setget set_max_points
-export(float,0.0,1.0,0.002) var damping = 0.5
-export(TangentAxis) var tangent_axis = TangentAxis.X
-export(int,0,20) var skip_frames = 0
-export(bool) var interpolate_skip = false setget set_interpolate_skip
+@export var sampling_mode: SamplingMode = SamplingMode.Process : set = set_sampling_mode
+@export var max_points = 10 : set = set_max_points # (int,0,1000)
+@export var damping = 0.5 # (float,0.0,1.0,0.002)
+@export var tangent_axis: TangentAxis = TangentAxis.X
+@export var skip_frames = 0 # (int,0,20)
+@export var interpolate_skip: bool = false : set = set_interpolate_skip
 
-export(ShaderMaterial) var material = null setget _set_material
+@export var material: ShaderMaterial = null : set = _set_material
 
 
-var damped_transform = Transform()
+var damped_transform = Transform3D()
 
 func _ready():
 	damped_transform = global_transform
-	_mesh_instance.set_as_toplevel(true)
+	_mesh_instance.set_as_top_level(true)
 	set_sampling_mode(sampling_mode)
 	set_max_points(max_points)
 	_set_material(material)
@@ -60,7 +60,7 @@ func set_sampling_mode(mode):
 func set_interpolate_skip(val):
 	interpolate_skip = val
 	if interpolate_skip:
-		_mesh_instance.transform = Transform.IDENTITY
+		_mesh_instance.transform = Transform3D.IDENTITY
 
 func set_max_points(val):
 	val = max(val,2)
@@ -99,10 +99,10 @@ func _redraw():
 func _skipped_frames(frames):
 	return fmod(frames,max(skip_frames+1,1)) < 0.001
 
-var _mesh_xform : Transform = Transform.IDENTITY
+var _mesh_xform : Transform3D = Transform3D.IDENTITY
 func _process(delta):
 	
-	if _skipped_frames(Engine.get_idle_frames()):
+	if _skipped_frames(Engine.get_process_frames()):
 		_mesh_xform = global_transform
 		if sampling_mode == SamplingMode.Process:
 			push_xform(global_transform)
@@ -123,14 +123,14 @@ func _physics_process(delta):
 # For testing correspondance between
 # trail mesh and points
 func _debug_spheres():
-	var s = Spatial.new()
-	if _mesh_instance.get_children().empty():
+	var s = Node3D.new()
+	if _mesh_instance.get_children().is_empty():
 		_mesh_instance.add_child(s)
 	else:
 		s = _mesh_instance.get_child(0)
 		for i in s.get_children():
 			i.queue_free()
-		var sphere = MeshInstance.new()
+		var sphere = MeshInstance3D.new()
 		var smesh = SphereMesh.new()
 		smesh.radius = 0.01
 		smesh.height = 0.02

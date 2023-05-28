@@ -1,9 +1,9 @@
 class_name ImmediateSurface
 
-# Interface for using SurfaceTool calls with ImmediateGeometry
+# Interface for using SurfaceTool calls with ImmediateMesh
 
 # Should not be changed
-var _ig : ImmediateGeometry = ImmediateGeometry.new() setget ,get_immediate_geometry
+var _ig : ImmediateMesh = ImmediateMesh.new() : get = get_immediate_geometry
 
 
 func get_immediate_geometry():
@@ -27,7 +27,7 @@ func add_uv(uv : Vector2):
 func add_color(color : Color):
 	_ig.set_color( color )
 
-var material_override : Material = null setget set_material_override
+var material_override : Material = null : set = set_material_override
 
 func set_material_override(value):
 	material_override = value

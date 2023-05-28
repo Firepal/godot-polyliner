@@ -1,0 +1,128 @@
+[gd_resource type="Shader" format=3 uid="uid://wiibok3l6p2d"]
+
+[resource]
+code = "shader_type spatial;
+render_mode skip_vertex_transform;
+render_mode unshaded;
+
+const float RAY_MISS = -1e20;
+
+// \\\"tangent-facing\\\" code and \\\"rounded end\\\" code was removed
+// for this particular shader
+
+uniform float line_width = 0.05;
+float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
+					inout vec3 normal, inout vec3 tangent){
+	vec3 dir_to_next_point = normal;
+	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
+	
+	float is_end = 0.5-uv.x;
+	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
+	
+	float side = sign(float(uv.y > 0.5)-0.5);
+	vertex += (perp*side) * width;
+	
+	tangent = perp;
+	normal = cross(perp,dir_to_next_point);
+	tangent = cross(tangent,normal);
+	
+	return is_end;
+}
+
+mat3 rotation3dX(float angle) {
+	float s = sin(angle);
+	float c = cos(angle);
+
+	return mat3(
+		vec3(1.0, 0.0, 0.0),
+		vec3(0.0, c, s),
+		vec3(0.0, -s, c)
+	);
+}
+
+varying mat3 TBN;
+varying mat3 rot;
+varying mat3 mv;
+varying float is_end;
+void vertex(){
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	
+	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
+	
+	BINORMAL = cross(TANGENT,NORMAL);
+	
+	TBN = mat3(
+		TANGENT,
+		-BINORMAL,
+		NORMAL
+	);
+	vec3 yeds = MODELVIEW_MATRIX[1].xyz * TBN;
+	float a1 = atan(-yeds.x,yeds.z);
+	rot = rotation3dX( a1 );
+	TBN = TBN * rot;
+	
+	mv = mat3(MODEL_MATRIX)*mat3(INV_VIEW_MATRIX)*TBN;
+	
+	rot = mat3(MODEL_MATRIX) * rot;
+}
+
+vec2 cylIntersect( in vec3 ro, in vec3 rd, in vec3 cb, in vec3 ca, float cr )
+{
+    vec3  oc = ro - cb;
+    float card = dot(ca,rd);
+    float caoc = dot(ca,oc);
+    float a = 1.0 - card*card;
+    float b = dot( oc, rd) - caoc*card;
+    float c = dot( oc, oc) - caoc*caoc - cr*cr;
+    float h = b*b - a*c;
+    if( h<0.0 ) return vec2(RAY_MISS); //no intersection
+    h = sqrt(h);
+    return vec2(-b-h,-b+h)/a;
+}
+
+vec3 cylNormal(vec3 u, vec3 dir, vec3 radius) {
+	return (u-dot(u,dir)*dir)/radius;
+}
+
+float raycast(vec3 ro, vec3 rd){
+	return cylIntersect(ro,rd,vec3(0.0),vec3(1.0,0.0,0.0),0.508).x;
+}
+
+vec2 hash22(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973));
+	p3 += dot(p3, p3.yzx+33.33);
+	return fract((p3.xx+p3.yz)*p3.zy);
+}
+
+uniform vec4 color : source_color = vec4(vec3(1.0,1.0,0.5),1.0);
+
+uniform float angle = 0.0;
+float get_x(float x) {
+	x += angle;
+	return fract((x*0.157)+0.5);
+}
+
+void fragment() {
+	vec3 ro = vec3(UV-0.5,0.0) * rot;
+	vec3 rd = -VIEW * TBN;
+	
+	float hit = raycast(ro, rd);
+	
+	vec3 hit_pos = ro + (rd * hit);
+//	vec3 hit_normal = getNormal(hit_pos);
+//	NORMAL = TBN * hit_normal;
+	
+	ROUGHNESS = 0.8;
+	
+	ALBEDO = color.rgb;
+	
+	mat3 local_TBN = mv;
+	vec3 normal = mv*cylNormal(hit_pos,vec3(1.0,0.0,0.0),vec3(0.5));
+	vec2 uvv;
+	uvv.x = get_x(atan(normal.x,normal.y));
+	uvv.y = UV.x/UV2.x;
+	ALBEDO = vec3(-(normal).x);
+}"

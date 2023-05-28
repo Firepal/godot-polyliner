@@ -103,7 +103,7 @@ void vertex(){
 	ray_origin *= rot;
 	
 	// Handle object rotation
-	rot = mat3(WORLD_MATRIX) * rot;
+	rot = mat3(MODEL_MATRIX) * rot;
 }
 
 float smin( float a, float b, float k ) {
@@ -211,8 +211,8 @@ float raymarch(vec3 ro, vec3 rd){
 }
 
 uniform float roughness : hint_range(0.0, 1.0, 0.001) = 1.0;
-uniform vec4 color : hint_color = vec4(vec3(0.1,0.2,0.1),1.0);
-uniform vec4 g_color : hint_color = vec4(vec3(0.3,0.6,0.3),1.0);
+uniform vec4 color : source_color = vec4(vec3(0.1,0.2,0.1),1.0);
+uniform vec4 g_color : source_color = vec4(vec3(0.3,0.6,0.3),1.0);
 
 vec3 hashcol(float seed) {
 	float randseed = fract(seed*0.3056);

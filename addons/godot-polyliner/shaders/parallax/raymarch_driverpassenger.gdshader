@@ -91,7 +91,7 @@ void vertex(){
 	);
 	
 	// I don't know how this works, but it does, so no complaints
-	vec3 yeds = INV_CAMERA_MATRIX[1].xyz * TBN;
+	vec3 yeds = VIEW_MATRIX[1].xyz * TBN;
 	float a1 = atan(-yeds.y,yeds.z);
 	rot = rotation3dX( a1 + angle );
 	TBN *= rot;
@@ -108,7 +108,7 @@ void vertex(){
 	ray_origin *= rot;
 	
 	// Handle object rotation
-	rot = mat3(WORLD_MATRIX) * rot;
+	rot = mat3(MODEL_MATRIX) * rot;
 }
 float sdBox2D( in vec2 p, in vec2 b ) {
 	vec2 d = abs(p)-b;
@@ -203,7 +203,7 @@ vec3 hashcol(float seed) {
 }
 
 uniform float roughness : hint_range(0.0, 1.0, 0.001) = 0.5;
-uniform vec4 color : hint_color = vec4(vec3(1.0,0.1,1.0),1.0);
+uniform vec4 color : source_color = vec4(vec3(1.0,0.1,1.0),1.0);
 
 void fragment(){
 	ALBEDO = color.rgb;

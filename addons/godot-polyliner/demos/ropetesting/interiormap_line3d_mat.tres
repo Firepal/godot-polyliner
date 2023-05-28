@@ -33,9 +33,9 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec3 cam_pos
 
 varying float is_end;
 void vertex(){
-	vec3 dir_to_cam = VERTEX - (inverse(WORLD_MATRIX) * vec4(CAMERA_MATRIX[3].xyz,1.0)).xyz;
-//	vec3 dir_to_cam = ((WORLD_MATRIX * vec4(VERTEX,1.0)).xyz - CAMERA_MATRIX[3].xyz) * mat3(WORLD_MATRIX);
-	is_end = line_process(line_width,VERTEX,normalize(dir_to_cam),CAMERA_MATRIX[3].xyz,UV2,
+	vec3 dir_to_cam = VERTEX - (inverse(MODEL_MATRIX) * vec4(INV_VIEW_MATRIX[3].xyz,1.0)).xyz;
+//	vec3 dir_to_cam = ((MODEL_MATRIX * vec4(VERTEX,1.0)).xyz - INV_VIEW_MATRIX[3].xyz) * mat3(MODEL_MATRIX);
+	is_end = line_process(line_width,VERTEX,normalize(dir_to_cam),INV_VIEW_MATRIX[3].xyz,UV2,
 							NORMAL,TANGENT);
 	
 	BINORMAL = cross(TANGENT,NORMAL);
@@ -65,14 +65,14 @@ vec2 getLineTubeNormal(vec2 uv) {
 	return n;
 }
 
-uniform vec4 color : hint_color = vec4(vec3(1.0),1.0);
+uniform vec4 color : source_color = vec4(vec3(1.0),1.0);
 uniform float metallic  : hint_range(0.0,1.0,0.005) = 0.0;
 uniform float specular  : hint_range(0.0,1.0,0.005) = 0.5;
 uniform float roughness : hint_range(0.0,1.0,0.005) = 0.5;
 void fragment() {
 	if (!FRONT_FACING) { NORMAL = -NORMAL; }
 	
-	if (!tangent_facing) { NORMALMAP.xy = getLineTubeNormal(UV2); }
+	if (!tangent_facing) { NORMAL_MAP.xy = getLineTubeNormal(UV2); }
 	
 	
 	if (rounded) {
@@ -86,7 +86,7 @@ void fragment() {
 	ROUGHNESS = roughness;
 	METALLIC = metallic;
 	
-	ALPHA_SCISSOR = 0.001; // uncomment for alpha blending
+	ALPHA_SCISSOR_THRESHOLD = 0.001; // uncomment for alpha blending
 }"
 
 [resource]

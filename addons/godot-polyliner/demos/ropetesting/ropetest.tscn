@@ -8,7 +8,7 @@
 [ext_resource path="res://addons/godot-polyliner/shaders/line_fade.gdshader" type="Shader" id=6]
 [ext_resource path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmaslightbulbs.gdshader" type="Shader" id=7]
 
-[sub_resource type="ProceduralSky" id=1]
+[sub_resource type="Sky" id=1]
 sky_top_color = Color( 0.219608, 0.219608, 0.219608, 1 )
 sky_horizon_color = Color( 0.411765, 0.411765, 0.411765, 1 )
 texture_size = 0
@@ -21,16 +21,16 @@ ambient_light_sky_contribution = 0.0
 
 [sub_resource type="PlaneMesh" id=3]
 
-[sub_resource type="BoxShape" id=9]
-extents = Vector3( 1, 0.4, 1 )
+[sub_resource type="BoxShape3D" id=9]
+size = Vector3( 1, 0.4, 1 )
 
-[sub_resource type="BoxShape" id=11]
+[sub_resource type="BoxShape3D" id=11]
 resource_local_to_scene = true
-extents = Vector3( 0.5, 0.5, 0.5 )
+size = Vector3( 0.5, 0.5, 0.5 )
 
-[sub_resource type="SpatialMaterial" id=34]
+[sub_resource type="StandardMaterial3D" id=34]
 
-[sub_resource type="CubeMesh" id=35]
+[sub_resource type="BoxMesh" id=35]
 size = Vector3( 1, 1, 1 )
 
 [sub_resource type="Shader" id=32]
@@ -171,7 +171,7 @@ float ao(vec3 p, vec3 n, vec2 fragcoord)
 	return occ;
 }
 
-uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.5),1.0);
+uniform vec4 color : source_color = vec4(vec3(1.0,1.0,0.5),1.0);
 uniform float twirl_aspect = 0.5;
 
 void fragment(){
@@ -207,7 +207,7 @@ shader_param/line_width = 0.2
 shader_param/color = Color( 1, 1, 0.5, 1 )
 shader_param/twirl_aspect = 5.0
 
-[sub_resource type="SphereShape" id=10]
+[sub_resource type="SphereShape3D" id=10]
 
 [sub_resource type="SphereMesh" id=33]
 
@@ -254,8 +254,8 @@ float sdCylinder( vec3 p, float c ){
 
 varying vec3 eye_dir;
 void vertex(){
-	vec3 world_cam = CAMERA_MATRIX[3].xyz;
-	vec3 world_vertex = (WORLD_MATRIX * vec4(VERTEX,1.0)).xyz;
+	vec3 world_cam = INV_VIEW_MATRIX[3].xyz;
+	vec3 world_vertex = (MODEL_MATRIX * vec4(VERTEX,1.0)).xyz;
 	
 	BINORMAL = cross(TANGENT,NORMAL);
 	mat3 TBN = mat3(
@@ -263,7 +263,7 @@ void vertex(){
 		BINORMAL,
 		NORMAL
 	);
-	mat3 world_TBN = mat3(WORLD_MATRIX) * TBN;
+	mat3 world_TBN = mat3(MODEL_MATRIX) * TBN;
 	
 	eye_dir = (world_vertex - world_cam) * world_TBN;
 }
@@ -369,9 +369,9 @@ shader = SubResource( 28 )
 
 [sub_resource type="QuadMesh" id=22]
 
-[sub_resource type="CubeMesh" id=19]
+[sub_resource type="BoxMesh" id=19]
 
-[sub_resource type="BoxShape" id=20]
+[sub_resource type="BoxShape3D" id=20]
 
 [sub_resource type="ShaderMaterial" id=27]
 shader = ExtResource( 6 )
@@ -404,8 +404,8 @@ shader_param/color = Color( 1, 1, 1, 1 )
 [sub_resource type="Curve3D" id=38]
 bake_interval = 0.02
 _data = {
-"points": PoolVector3Array( -0.794917, -1.59787, -1.79256, 0.794917, 1.59787, 1.79256, 0.141981, 1.12793, 0.211593, -0.811577, 1.33557, -0.00136006, 0.811577, -1.33557, 0.00136006, 2.83198, 0.133918, 2.42691 ),
-"tilts": PoolRealArray( 0, 0 )
+"points": PackedVector3Array( -0.794917, -1.59787, -1.79256, 0.794917, 1.59787, 1.79256, 0.141981, 1.12793, 0.211593, -0.811577, 1.33557, -0.00136006, 0.811577, -1.33557, 0.00136006, 2.83198, 0.133918, 2.42691 ),
+"tilts": PackedFloat32Array( 0, 0 )
 }
 
 [sub_resource type="ShaderMaterial" id=39]
@@ -419,33 +419,33 @@ shader_param/rot_period = 0.0
 shader_param/roughness = 0.293
 shader_param/color = Color( 1, 1, 0.368627, 1 )
 
-[node name="Spatial" type="Spatial"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0148439, 0, -0.0798446 )
+[node name="Node3D" type="Node3D"]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0148439, 0, -0.0798446 )
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource( 2 )
 
-[node name="DirectionalLight" type="DirectionalLight" parent="."]
-transform = Transform( 0.707107, 0.5, 0.5, 0, -0.707107, 0.707107, 0.707107, -0.5, -0.5, 0, 4.37562, 0 )
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D( 0.707107, 0.5, 0.5, 0, -0.707107, 0.707107, 0.707107, -0.5, -0.5, 0, 4.37562, 0 )
 shadow_enabled = true
 directional_shadow_normal_bias = 0.2
 directional_shadow_bias_split_scale = 1.0
 directional_shadow_max_distance = 40.0
 
-[node name="Camera" type="Camera" parent="."]
-transform = Transform( -0.967383, -0.0784649, 0.24086, 0, 0.950819, 0.309747, -0.253319, 0.299644, -0.919806, 5.58673, 9.35005, -7.23411 )
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D( -0.967383, -0.0784649, 0.24086, 0, 0.950819, 0.309747, -0.253319, 0.299644, -0.919806, 5.58673, 9.35005, -7.23411 )
 
-[node name="MeshInstance" type="MeshInstance" parent="."]
-transform = Transform( 9, 0, 0, 0, 1, 0, 0, 0, 9, -0.721719, 1.50942, 0.0287716 )
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D( 9, 0, 0, 0, 1, 0, 0, 0, 9, -0.721719, 1.50942, 0.0287716 )
 mesh = SubResource( 3 )
 
-[node name="StaticBody" type="StaticBody" parent="MeshInstance"]
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D"]
 
-[node name="CollisionShape" type="CollisionShape" parent="MeshInstance/StaticBody"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D"]
 shape = SubResource( 9 )
 
-[node name="RigidBody" type="RigidBody" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -4.59139, 11.7783, -0.591243 )
+[node name="RigidBody3D" type="RigidBody3D" parent="."]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, -4.59139, 11.7783, -0.591243 )
 mode = 3
 can_sleep = false
 script = ExtResource( 5 )
@@ -454,78 +454,78 @@ segment_count = 5
 stiff_multiplier = 4.0
 damp = 4.0
 
-[node name="CollisionShape" type="CollisionShape" parent="RigidBody"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
 shape = SubResource( 11 )
 disabled = true
 
-[node name="MeshInstance" type="MeshInstance" parent="RigidBody"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
 material_override = SubResource( 34 )
 mesh = SubResource( 35 )
 
-[node name="Line3D" type="Spatial" parent="RigidBody"]
+[node name="Line3D" type="Node3D" parent="RigidBody3D"]
 script = ExtResource( 2 )
 material = SubResource( 31 )
-points = PoolVector3Array( 0, 0, 0, 1.074, 0, 0 )
+points = PackedVector3Array( 0, 0, 0, 1.074, 0, 0 )
 
-[node name="RigidBody2" type="RigidBody" parent="."]
-transform = Transform( 0.942694, 0.333659, 0, -0.333659, 0.942694, 0, 0, 0, 1, 5.26959, 8.46232, 5.28869 )
+[node name="RigidBody2" type="RigidBody3D" parent="."]
+transform = Transform3D( 0.942694, 0.333659, 0, -0.333659, 0.942694, 0, 0, 0, 1, 5.26959, 8.46232, 5.28869 )
 mode = 1
 can_sleep = false
 
-[node name="CollisionShape" type="CollisionShape" parent="RigidBody2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody2"]
 shape = SubResource( 10 )
 
-[node name="MeshInstance" type="MeshInstance" parent="RigidBody2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody2"]
 mesh = SubResource( 33 )
 
-[node name="MeshInstance2" type="MeshInstance" parent="."]
-transform = Transform( -3.29765e-08, -0.583896, 0.811829, 1.50819e-07, 0.811829, 0.583896, -1, 1.41694e-07, 6.12914e-08, -5.35959, 9.02738, -0.218791 )
+[node name="MeshInstance2" type="MeshInstance3D" parent="."]
+transform = Transform3D( -3.29765e-08, -0.583896, 0.811829, 1.50819e-07, 0.811829, 0.583896, -1, 1.41694e-07, 6.12914e-08, -5.35959, 9.02738, -0.218791 )
 visible = false
 material_override = SubResource( 18 )
 mesh = SubResource( 22 )
 material/0 = SubResource( 18 )
 
-[node name="RigidBody3" type="RigidBody" parent="."]
-transform = Transform( 0.2, 0, 0, 0, 1, 0, 0, 0, 3, -1.50901, 12.1068, 0 )
+[node name="RigidBody3" type="RigidBody3D" parent="."]
+transform = Transform3D( 0.2, 0, 0, 0, 1, 0, 0, 0, 3, -1.50901, 12.1068, 0 )
 mode = 1
 mass = 500.0
 can_sleep = false
 
-[node name="MeshInstance3" type="MeshInstance" parent="RigidBody3"]
+[node name="MeshInstance3" type="MeshInstance3D" parent="RigidBody3"]
 mesh = SubResource( 19 )
 skeleton = NodePath("../..")
 
-[node name="CollisionShape" type="CollisionShape" parent="RigidBody3"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3"]
 shape = SubResource( 20 )
 
-[node name="OmniLight" type="OmniLight" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.38419e-07, 4.29619, -2.39214 )
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.38419e-07, 4.29619, -2.39214 )
 visible = false
 shadow_enabled = true
 omni_range = 12.6026
 
-[node name="Trail3D" type="Spatial" parent="."]
-transform = Transform( -0.321541, -0.946734, 0.0173914, 0.916678, -0.31583, -0.244843, 0.237294, -0.0627848, 0.969406, 0.154614, 3.80043, -5.5822 )
+[node name="Trail3D" type="Node3D" parent="."]
+transform = Transform3D( -0.321541, -0.946734, 0.0173914, 0.916678, -0.31583, -0.244843, 0.237294, -0.0627848, 0.969406, 0.154614, 3.80043, -5.5822 )
 script = ExtResource( 4 )
 max_points = 23
 damping = 0.493
 material = SubResource( 27 )
 
-[node name="Line3D" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.27101, 0 )
+[node name="Line3D" type="Node3D" parent="."]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.27101, 0 )
 visible = false
 script = ExtResource( 2 )
 material = SubResource( 29 )
-points = PoolVector3Array( 0, 0, 0, 1.341, 0, 0 )
+points = PackedVector3Array( 0, 0, 0, 1.341, 0, 0 )
 
-[node name="Line3D2" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 3.72529e-09, 5.64986, 0 )
+[node name="Line3D2" type="Node3D" parent="."]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, 3.72529e-09, 5.64986, 0 )
 script = ExtResource( 2 )
 material = SubResource( 37 )
-points = PoolVector3Array( 0, 0, 0, 4, 0, 0 )
+points = PackedVector3Array( 0, 0, 0, 4, 0, 0 )
 
-[node name="LinePath3D" type="Path" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.226341, 6.81151, -0.413063 )
+[node name="LinePath3D" type="Path3D" parent="."]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.226341, 6.81151, -0.413063 )
 curve = SubResource( 38 )
 script = ExtResource( 3 )
 material = SubResource( 39 )

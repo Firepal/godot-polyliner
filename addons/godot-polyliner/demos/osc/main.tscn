@@ -39,7 +39,7 @@ void vertex(){
 	line_process(line_width, VERTEX, normalize(VERTEX), UV, NORMAL, TANGENT);
 }
 
-uniform vec4 color : hint_color = vec4(vec3(1.0,1.0,0.0),1.0);
+uniform vec4 color : source_color = vec4(vec3(1.0,1.0,0.0),1.0);
 void fragment() {
 	ALPHA = 1.0-pow(smoothstep(1.0,0.0,UV.x),0.3);
 	ALPHA *= smoothstep(1.0,0.0,abs(UV.y*2.0-1.0));
@@ -71,7 +71,7 @@ mat3 facevec(vec3 vector,vec3 up){
 }
 
 void vertex(){
-//	vec3 to_cam = (CAMERA_MATRIX[3].xyz-WORLD_MATRIX[3].xyz)*mat3(WORLD_MATRIX);
+//	vec3 to_cam = (INV_VIEW_MATRIX[3].xyz-MODEL_MATRIX[3].xyz)*mat3(MODEL_MATRIX);
 //	mat3 face_camera = facevec(to_cam,vec3(0.0,1.0,0.0));
 //	VERTEX = face_camera*VERTEX;
 	MODELVIEW_MATRIX[0].xyz = vec3(1.0,0.0,0.0);
@@ -95,14 +95,14 @@ shader = SubResource( 4 )
 [sub_resource type="Environment" id=6]
 background_mode = 1
 
-[node name="Spatial" type="Spatial"]
+[node name="Node3D" type="Node3D"]
 
-[node name="Trail3D" type="MeshInstance" parent="."]
+[node name="Trail3D" type="MeshInstance3D" parent="."]
 material_override = SubResource( 8 )
 mesh = SubResource( 9 )
 script = ExtResource( 1 )
 
-[node name="MeshInstance" type="MeshInstance" parent="Trail3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Trail3D"]
 mesh = SubResource( 3 )
 material/0 = SubResource( 5 )
 
@@ -110,8 +110,8 @@ material/0 = SubResource( 5 )
 stream = ExtResource( 2 )
 autoplay = true
 
-[node name="Camera" type="Camera" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.64681 )
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.64681 )
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource( 6 )

@@ -1,36 +1,14 @@
 shader_type spatial;
 render_mode skip_vertex_transform, cull_disabled;
-render_mode vertex_lighting,specular_blinn;
-//render_mode depth_draw_alpha_prepass;
+render_mode vertex_lighting;
+//render_mode depth_draw_opaque;
+
+#include "include/polyliner_inc.gdshaderinc"
 
 uniform float line_width = 0.1;
-uniform sampler2D width_curve : hint_albedo;
+uniform sampler2D width_curve : source_color;
 uniform bool tangent_facing = false;
 uniform bool rounded = false;
-float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
-					inout vec3 normal, inout vec3 tangent){
-	vec3 dir_to_next_point = normal;
-	vec3 perp = tangent;
-	if (!tangent_facing) {
-		perp = normalize(cross(dir_to_cam,dir_to_next_point));
-	}
-	
-	float is_end = 0.5-uv.x;
-	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
-	vec3 rounder = vec3(0.0); 
-	if (rounded) { 
-		rounder = is_end * normalize(cross(perp,dir_to_cam));
-	}
-	
-	float curve_multiplier = texture(width_curve, uv).a;
-	float side = sign(float(uv.y > 0.5)-0.5);
-	vertex += ((perp*side)-rounder) * width * curve_multiplier;
-	
-	tangent = perp;
-	normal = cross(perp,dir_to_next_point);
-	
-	return is_end;
-}
 
 varying float is_end;
 void vertex(){
@@ -38,7 +16,7 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
+	quick_line(line_width,rounded);
 	
 	BINORMAL = cross(TANGENT,NORMAL);
 	
@@ -54,11 +32,11 @@ void vertex(){
 	}
 }
 
-uniform sampler2D albedo_tex : hint_albedo;
+uniform sampler2D albedo_tex : source_color;
 uniform bool tex_stretch = true;
 uniform vec2 tex_scale = vec2(1.0,1.0);
 
-uniform vec4 color : hint_color = vec4(vec3(1.0),1.0);
+uniform vec4 color : source_color = vec4(vec3(1.0),1.0);
 uniform float metallic  : hint_range(0.0,1.0,0.005) = 0.0;
 uniform float specular  : hint_range(0.0,1.0,0.005) = 0.5;
 uniform float roughness : hint_range(0.0,1.0,0.005) = 0.5;

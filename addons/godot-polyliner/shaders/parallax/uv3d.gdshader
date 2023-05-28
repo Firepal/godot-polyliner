@@ -153,7 +153,7 @@ float raymarch(vec3 ro, vec3 rd){
 }
 
 uniform float roughness : hint_range(0.0, 1.0, 0.001) = 0.1;
-uniform vec4 color : hint_color = vec4(vec3(0.9),1.0);
+uniform vec4 color : source_color = vec4(vec3(0.9),1.0);
 uniform float twirl_aspect = 0.5;
 
 void fragment(){
@@ -164,7 +164,7 @@ void fragment(){
 	);
 	
 	// I don't know how this works, but it does, so no complaints
-	vec3 yeds = INV_CAMERA_MATRIX[1].xyz * TBN;
+	vec3 yeds = VIEW_MATRIX[1].xyz * TBN;
 	float a1 = atan(-yeds.y,yeds.z);
 
 	mat3 rot = rotation3dX( a1 + angle );

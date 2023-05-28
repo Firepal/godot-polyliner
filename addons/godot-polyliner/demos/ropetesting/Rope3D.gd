@@ -1,25 +1,25 @@
-extends RigidBody
+extends RigidBody3D
 
 class_name Rope3D
 
-export(NodePath) var end_segment = ""
-var end_segment_node : RigidBody = null 
-export var segment_count : int = 10 setget _set_segment_count
-export var attached_to_end = true
-export var segment_mass : float = 20
-export var stiff_multiplier : float = 5
-export var damp : float = 0.5
+@export var end_segment: NodePath = ""
+var end_segment_node : RigidBody3D = null 
+@export var segment_count : int = 10 : set = _set_segment_count
+@export var attached_to_end = true
+@export var segment_mass : float = 20
+@export var stiff_multiplier : float = 5
+@export var damp : float = 0.5
 var segments = []
 var segments_broke = []
 var segment_positions = []
 
-onready var joint : Generic6DOFJoint = null
-onready var col_shape = $CollisionShape.shape
-onready var line = $Line3D
+@onready var joint : Generic6DOFJoint3D = null
+@onready var col_shape = $CollisionShape3D.shape
+@onready var line = $Line3D
 
 func _set_end_segment(val):
 	var node = get_node(val)
-	if node != null and node is RigidBody:
+	if node != null and node is RigidBody3D:
 		end_segment_node = node
 		create_segments()
 	end_segment = val
@@ -30,7 +30,7 @@ func _set_segment_count(val):
 	segment_positions.resize(segment_count+1)
 
 func _ready():
-	var new_joint = Generic6DOFJoint.new()
+	var new_joint = Generic6DOFJoint3D.new()
 	add_child(new_joint)
 	joint = new_joint
 	_set_joint_params(joint)
@@ -38,7 +38,7 @@ func _ready():
 	_set_end_segment(end_segment)
 	_set_segment_count(segment_count)
 
-func _set_joint_params(t_joint : Generic6DOFJoint):
+func _set_joint_params(t_joint : Generic6DOFJoint3D):
 	t_joint["linear_limit_x/enabled"] = false
 	t_joint["linear_limit_y/enabled"] = false
 	t_joint["linear_limit_z/enabled"] = false
@@ -72,21 +72,21 @@ func _set_joint_params(t_joint : Generic6DOFJoint):
 	t_joint["linear_spring_z/damping"] = dampy
 
 func _draw_line():
-#	segment_positions[0] = global_transform.inverse().xform(global_transform.origin)
+#	segment_positions[0] = global_transform.inverse() * global_transform.origin
 	
 	for i in range(segments.size()):
 		var p = segments[i].global_transform.translated(Vector3.LEFT*0.5).origin
-		segment_positions[i] = global_transform.inverse().xform(p)
+		segment_positions[i] = global_transform.inverse() * p
 	
-	segment_positions[segment_positions.size()-1] = global_transform.inverse().xform(end_segment_node.global_transform.origin)
+	segment_positions[segment_positions.size()-1] = global_transform.inverse() * end_segment_node.global_transform.origin
 	
-	line.points = PoolVector3Array(segment_positions)
+	line.points = PackedVector3Array(segment_positions)
 
 func _process(delta):
 	if segments.size() > 0: _draw_line()
 
 func connect_to_other_segment(this_segment,other_segment):
-	var this_joint : Generic6DOFJoint = this_segment.joint
+	var this_joint : Generic6DOFJoint3D = this_segment.joint
 	this_joint.set_node_a( this_segment.get_path() )
 	this_joint.set_node_b( other_segment.get_path() )
 	
@@ -95,7 +95,7 @@ func connect_to_other_segment(this_segment,other_segment):
 func _handle_breakage():
 	pass
 
-onready var rope_seg_template = preload("res://addons/godot-polyliner/demos/ropetesting/RopeSegment3D.tscn")
+@onready var rope_seg_template = preload("res://addons/godot-polyliner/demos/ropetesting/RopeSegment3D.tscn")
 
 func create_segments():
 	var start_pos = global_transform.origin
@@ -105,15 +105,15 @@ func create_segments():
 	
 	for i in range(segment_count):
 		
-		var new_segment = rope_seg_template.instance()
+		var new_segment = rope_seg_template.instantiate()
 		new_segment.id = i
 		new_segment.mass = segment_mass
 		add_child(new_segment)
-		new_segment.set_as_toplevel(true)
+		new_segment.set_as_top_level(true)
 		
 		var t = inv_ps*(i+1)
-		var pos = start_pos.linear_interpolate(end_pos,(t*0.9))
-		new_segment.translation = pos
+		var pos = start_pos.lerp(end_pos,(t*0.9))
+		new_segment.position = pos
 		
 		var last_segment = self
 		if i >= 1: last_segment = segments[i-1]

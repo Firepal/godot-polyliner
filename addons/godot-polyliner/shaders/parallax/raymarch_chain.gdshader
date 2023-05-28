@@ -1,31 +1,11 @@
 shader_type spatial;
 render_mode skip_vertex_transform,cull_disabled;
-render_mode depth_draw_alpha_prepass;
+render_mode depth_draw_opaque;
 //render_mode unshaded;
+#include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
 const float RAY_MISS = -1e20;
 
-// \"tangent-facing\" code and \"rounded end\" code was removed
-// for this particular shader
-
-uniform float line_width = 0.025;
-float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
-					inout vec3 normal, inout vec3 tangent,inout vec3 binormal){
-	vec3 dir_to_next_point = normalize(normal);
-	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
-	
-	float is_end = 0.5-uv.x;
-	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
-	
-	float side = sign(float(uv.y > 0.5)-0.5);
-	vertex += (perp*side) * width;
-	
-	binormal = -perp;
-	normal = cross(perp,dir_to_next_point);
-	tangent = cross(normal,binormal);
-	
-	return is_end;
-}
 
 mat3 rotation3dX(float angle) {
 	float s = sin(angle);
@@ -39,25 +19,27 @@ mat3 rotation3dX(float angle) {
 }
 
 uniform float twirl_aspect = 8.0;
-uniform float angle = 0.0;
+uniform float extra_angle = 0.0;
 varying vec3 ray_origin;
-varying mat3 rot;
+
 varying mat3 TBN;
+
+uniform float line_width = 0.025;
 void vertex(){
 	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
 	float is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT,BINORMAL);
-	BINORMAL = cross(TANGENT,NORMAL);
+	
 	TBN = mat3(
 		TANGENT,
 		-BINORMAL,
 		NORMAL
 	);
-	// I don't know how this works, but it does, so no complaints
-	vec3 yeds = INV_CAMERA_MATRIX[1].xyz * TBN;
-	rot = rotation3dX( atan(-yeds.y,yeds.z) + angle );
+	
+	vec3 yeds = MODELVIEW_MATRIX[1].xyz * TBN;
+	mat3 rot = rotation3dX( atan(-yeds.y,yeds.z) );
 	TBN *= rot;
 	
 	ray_origin = vec3(UV,0.0);
@@ -69,7 +51,6 @@ void vertex(){
 	ray_origin.xy *= vec2(asp,1.0)*0.4;
 	
 	ray_origin *= rot;
-	
 }
 
 vec3 opRep( in vec3 p, in vec3 c )
@@ -117,7 +98,7 @@ vec3 getNormal( in vec3 p )
 }
 
 float raymarch(vec3 ro, vec3 rd){
-	float total_dist = -0.5;
+	float total_dist = -2.0;
 	
 	for(int i=0;i<128;i++){
 		if (total_dist > 4.0) { break; }
@@ -149,7 +130,7 @@ float fake_ao(vec3 ro, vec3 rd) {
 
 uniform float roughness : hint_range(0.0, 1.0, 0.001) = 0.25;
 uniform float metallic : hint_range(0.0, 1.0, 0.001) = 1.0;
-uniform vec4 color : hint_color = vec4(vec3(0.9),1.0);
+uniform vec4 color : source_color = vec4(vec3(0.9),1.0);
 
 varying vec3 hit_pos;
 void fragment(){

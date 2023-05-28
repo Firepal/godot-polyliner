@@ -6,47 +6,30 @@
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
-config_version=4
-
-_global_script_classes=[ {
-"base": "Reference",
-"class": "ImmediateSurface",
-"language": "GDScript",
-"path": "res://addons/godot-polyliner/LineGen3D/ImmediateSurface.gd"
-}, {
-"base": "Resource",
-"class": "LineGen3D",
-"language": "GDScript",
-"path": "res://addons/godot-polyliner/LineGen3D/LineGen3D.gd"
-}, {
-"base": "RigidBody",
-"class": "Rope3D",
-"language": "GDScript",
-"path": "res://addons/godot-polyliner/demos/ropetesting/Rope3D.gd"
-} ]
-_global_script_class_icons={
-"ImmediateSurface": "",
-"LineGen3D": "",
-"Rope3D": ""
-}
+config_version=5
 
 [application]
 
 config/name="Polyliner"
 run/main_scene="res://addons/godot-polyliner/demos/demo/Spatial.tscn"
+config/features=PackedStringArray("4.0")
 config/icon="res://icon.png"
 
 [audio]
 
-default_bus_layout="res://addons/godot-polyliner/demos/default_bus_layout.tres"
+buses/default_bus_layout="res://addons/godot-polyliner/demos/buses/default_bus_layout.tres"
 
 [display]
 
-window/vsync/use_vsync=false
+window/vsync/vsync_mode=false
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/godot-polyliner/plugin.cfg" )
+enabled=PackedStringArray("res://addons/godot-polyliner/plugin.cfg")
+
+[network]
+
+limits/debugger/max_chars_per_second=8192
 
 [physics]
 
@@ -54,14 +37,14 @@ common/enable_pause_aware_picking=true
 
 [rendering]
 
+shading/overrides/force_vertex_shading.mobile=false
+shading/overrides/force_lambert_over_burley.mobile=false
+anti_aliasing/quality/msaa_3d=2
+environment/defaults/default_environment="res://addons/godot-polyliner/demos/default_env.tres"
 vram_compression/import_etc=true
-vram_compression/import_etc2=false
 quality/shadows/filter_mode=2
 quality/shadows/filter_mode.mobile=2
 quality/reflections/texture_array_reflections=false
 quality/reflections/high_quality_ggx=false
-quality/shading/force_vertex_shading.mobile=false
-quality/shading/force_lambert_over_burley.mobile=false
-quality/shading/force_blinn_over_ggx.mobile=false
+shading/overrides/force_blinn_over_ggx.mobile=false
 quality/filters/msaa=2
-environment/default_environment="res://addons/godot-polyliner/demos/default_env.tres"
