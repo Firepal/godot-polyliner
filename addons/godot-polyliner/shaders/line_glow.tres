@@ -1,9 +1,12 @@
-shader_type spatial;
+[gd_resource type="Shader" format=3 uid="uid://c2c7sknvw28nm"]
+
+[resource]
+code = "shader_type spatial;
 render_mode skip_vertex_transform;
 render_mode blend_add;
 render_mode unshaded;
 
-#include "include/polyliner_inc.gdshaderinc"
+#include \"res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc\"
 
 uniform float line_width = 0.0;
 uniform float glow_width = 0.4;
@@ -35,10 +38,10 @@ void vertex(){
 uniform vec4 color : source_color = vec4(vec3(0.0,0.4,1.0),1.0);
 uniform float curve : hint_range(0.0,1.0) = 0.2;
 void fragment(){
-	float roundededge = smoothstep(lw*0.5,0.5,getDistToLineCenter(UV,is_end));
+	float roundededge = smoothstep(lw*0.25,0.25,getDistToLineCenter(UV,is_end));
 	roundededge = 1.0-pow(roundededge,curve);
 	
 	ALBEDO = mix(color.rgb,vec3(1.0),roundededge);
 	ALPHA = roundededge;
 //	ALPHA *= hider;
-}
+}"

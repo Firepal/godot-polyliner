@@ -7,25 +7,7 @@ render_mode blend_add;
 // for this particular shader
 
 uniform float line_width = 0.05;
-float line_process(float width, float depth, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
-					inout vec3 normal, inout vec3 tangent, inout vec3 binormal){
-	vec3 dir_to_next_point = normal;
-	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
-	
-	float is_end = 0.5-uv.x;
-	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
-	
-	float side = sign(float(uv.y > 0.5)-0.5);
-	binormal = perp;
-	normal = cross(perp,dir_to_next_point);
-	tangent = cross(binormal,normal);
-	
-	vertex += (perp*side) * width;
-	
-	
-	
-	return is_end;
-}
+#include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
 vec3 hash31(float p) {
    vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
@@ -81,7 +63,8 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	float is_end = line_process(line_width,0.5,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT,BINORMAL);
+	float is_end;
+	quick_line(line_width,false);
 	
 	
 	TBN = mat3(

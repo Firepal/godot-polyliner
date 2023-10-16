@@ -9,7 +9,7 @@ const float RAY_MISS = -1e20;
 // for this particular shader
 
 uniform float line_width = 0.05;
-float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
+float line_processe(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 					inout vec3 normal, inout vec3 tangent){
 	vec3 dir_to_next_point = normal;
 	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
@@ -26,6 +26,7 @@ float line_process(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 	
 	return is_end;
 }
+#include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
 varying mat3 TBN;
 varying float is_end;
@@ -34,7 +35,8 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
+//	is_end = line_processe(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
+	quick_line(line_width,false)
 	
 	BINORMAL = cross(TANGENT,NORMAL);
 	
@@ -106,7 +108,7 @@ float raymarch_base(
 }
 
 float raymarch(vec3 ro, vec3 rd){
-	return raymarch_base(ro,rd,512,0.00001,2.0,-3.0);
+	return raymarch_base(ro,rd,512,0.00001,2.0,-2.0);
 }
 
 float raymarch_ao(vec3 ro, vec3 rd){
@@ -194,9 +196,10 @@ bool ray_miss(float hit) {
 
 varying vec3 hit_pos;
 varying vec3 hit_normal;
+uniform float xez;
 void fragment() {
-	vec3 ro = get_ro(UV);
-	vec3 rd = -VIEW * TBN;
+	vec3 ro = get_ro(UV) * xez;
+	vec3 rd = normalize(-VIEW * TBN);
 	
 	float hit = raymarch(ro, rd);
 	if (ray_miss(hit)) { discard; }

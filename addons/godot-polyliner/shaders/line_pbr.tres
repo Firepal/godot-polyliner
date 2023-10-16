@@ -1,9 +1,12 @@
-shader_type spatial;
+[gd_resource type="Shader" format=3 uid="uid://c30na0obdky88"]
+
+[resource]
+code = "shader_type spatial;
 render_mode skip_vertex_transform;
 render_mode depth_draw_opaque;
 render_mode alpha_to_coverage_and_one;
 
-#include "include/polyliner_inc.gdshaderinc"
+#include \"res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc\"
 
 uniform float line_width = 0.03;
 uniform sampler2D width_curve : source_color;
@@ -16,8 +19,13 @@ void vertex(){
 	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	BINORMAL = mat3(MODELVIEW_MATRIX) * BINORMAL;
 	
-	quick_line(line_width,rounded);
+	LineData ld = pak_linedata(PLYLINE_INPUTS,line_width,rounded);
+	is_end = line_process(ld);
+	unpak_linedata(PLYLINE_INPUTS,ld);
+	
+//	BINORMAL = cross(TANGENT,NORMAL);
 	
 	if (uv_matches_width) {
 		UV.x /= line_width;
@@ -50,7 +58,9 @@ uniform bool tube_normal = true;
 void fragment() {
 	if (!FRONT_FACING) { NORMAL = -NORMAL; }
 	
-	if (tube_normal && !tangent_facing) { NORMAL_MAP.xy = getLineTubeNormal(UV,is_end,rounded); }
+	if (tube_normal && !tangent_facing) { 
+		NORMAL_MAP = getLineTubeNormal(UV,is_end,rounded);
+	}
 	
 	
 	if (rounded && abs(is_end) > 0.0) {
@@ -74,5 +84,5 @@ void fragment() {
 	ROUGHNESS = roughness * rgh_sample.r;
 	METALLIC = metallic;
 	
-//	ALPHA_SCISSOR_THRESHOLD = 0.001; // uncomment for alpha blending
-}
+	ALPHA_SCISSOR_THRESHOLD = 0.001; // uncomment for alpha blending
+}"

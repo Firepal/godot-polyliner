@@ -5,79 +5,22 @@ render_mode skip_vertex_transform;
 // \"tangent-facing\" code and \"rounded end\" code was removed
 // for this particular shader
 
+#include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
+
 uniform float line_width = 0.05;
-float line_process(float width, float depth, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
-					inout vec3 normal, inout vec3 tangent, inout vec3 binormal){
-	vec3 dir_to_next_point = normal;
-	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
-	
-	float is_end = 0.5-uv.x;
-	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
-	
-	float side = sign(float(uv.y > 0.5)-0.5);
-	binormal = perp;
-	normal = cross(perp,dir_to_next_point);
-	tangent = cross(binormal,normal);
-	vertex += (perp*side) * width;
-	
-	return is_end;
-}
 
-vec3 hash31(float p) {
-   vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
-   p3 += dot(p3, p3.yzx+33.33);
-   return fract((p3.xxy+p3.yzz)*p3.zyx); 
-}
-
-mat3 rotateAlign( vec3 v1, vec3 v2 )
-{
-	vec3 axis = cross( v1, v2 );
-	
-	float cosA = dot( v1, v2 );
-	float k = 1.0 / (1.0 + cosA);
-	
-	mat3 result = mat3(
-		vec3(
-		(axis.x * axis.x * k) + cosA,
-		(axis.y * axis.x * k) - axis.z, 
-		(axis.z * axis.x * k) + axis.y),
-		vec3(
-			(axis.x * axis.y * k) + axis.z,  
-			(axis.y * axis.y * k) + cosA,      
-			(axis.z * axis.y * k) - axis.x),
-		vec3(
-			(axis.x * axis.z * k) - axis.y,  
-			(axis.y * axis.z * k) + axis.x,  
-			(axis.z * axis.z * k) + cosA)
-		);
-
-	return result;
-}
-
-mat3 rotation3dX(float angle) {
-	float s = sin(angle);
-	float c = cos(angle);
-
-	return mat3(
-		vec3(1.0, 0.0, 0.0),
-		vec3(0.0, c, s),
-		vec3(0.0, -s, c)
-	);
-}
 uniform float twirl_aspect = 2;
 uniform float angle = 0.0;
 
-varying vec3 ray_dir;
 varying vec3 ray_origin;
-varying mat3 rot;
 varying mat3 TBN;
 void vertex(){
 	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	float is_end = line_process(line_width,0.5,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT,BINORMAL);
-	
+	float is_end;
+	quick_line(line_width,false)
 	
 	TBN = mat3(
 		TANGENT,
@@ -86,22 +29,18 @@ void vertex(){
 	);
 	
 	vec3 yeds = MODELVIEW_MATRIX[1].xyz * TBN;
-	float a1 = atan(-yeds.y,yeds.z);
-	rot = rotation3dX( a1 + angle );
+	mat3 rot = rotation3dX( atan(-yeds.y,yeds.z) );
 	TBN *= rot;
 	
-	ray_dir = VERTEX * TBN;
 	ray_origin = vec3(UV,0.0);
+	ray_origin.x *= UV2.x;
+	
 	float asp = twirl_aspect / line_width;
-	asp *= UV2.x;
 	
 	ray_origin.y -= 0.5;
-	ray_origin.xy *= vec2(asp,1.0)*0.5;
+	ray_origin.xy *= vec2(asp,1.0)*0.4;
 	
 	ray_origin *= rot;
-	
-	// Handle object rotation
-	rot = mat3(MODEL_MATRIX) * rot;
 }
 
 float smin( float a, float b, float k ) {
@@ -159,10 +98,10 @@ vec2 scene(vec3 p) {
 	float dist = min(r1,r2);
 //	float dist = smin(r1,r2,0.03);
 
-	float color = yes.x;
-	if (r2 > r1) { color = -10.0; }
+	float col = yes.x;
+	if (r2 > r1) { col = -10.0; }
 	
-	return vec2(dist,color);
+	return vec2(dist,col);
 //	return smin(r1,r2,yes.x*0.1);
 }
 
@@ -216,7 +155,7 @@ void fragment(){
 	ROUGHNESS = roughness;
 	
 	vec3 ro = ray_origin;
-	vec3 rd = normalize(ray_dir);
+	vec3 rd = -VIEW * TBN;
 	
 	float hit_info = raymarch(ro, rd);
 	vec3 hit_pos = ro + rd * hit_info;

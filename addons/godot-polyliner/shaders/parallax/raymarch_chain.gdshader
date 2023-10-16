@@ -4,24 +4,12 @@ render_mode depth_draw_opaque;
 //render_mode unshaded;
 #include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
-const float RAY_MISS = -1e20;
-
-
-mat3 rotation3dX(float angle) {
-	float s = sin(angle);
-	float c = cos(angle);
-
-	return mat3(
-		vec3(1.0, 0.0, 0.0),
-		vec3(0.0, c, s),
-		vec3(0.0, -s, c)
-	);
-}
+const float RAY_MISS = 1e20;
 
 uniform float twirl_aspect = 8.0;
 uniform float extra_angle = 0.0;
-varying vec3 ray_origin;
 
+varying vec3 ray_origin;
 varying mat3 TBN;
 
 uniform float line_width = 0.025;
@@ -30,11 +18,12 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	float is_end = line_process(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT,BINORMAL);
+	float is_end;
+	quick_line(line_width,false)
 	
 	TBN = mat3(
 		TANGENT,
-		-BINORMAL,
+		BINORMAL,
 		NORMAL
 	);
 	
@@ -133,12 +122,12 @@ uniform float metallic : hint_range(0.0, 1.0, 0.001) = 1.0;
 uniform vec4 color : source_color = vec4(vec3(0.9),1.0);
 
 varying vec3 hit_pos;
-void fragment(){
-	vec3 ro = ray_origin;
+void fragment() {
+	vec3 ro = ray_origin*1.1;
 	vec3 rd = -VIEW * TBN;
 	
 	float hit = raymarch(ro, rd);
-	if ( hit == RAY_MISS ) { discard; }
+	if ( abs(hit - RAY_MISS) < 0.001 ) { discard; }
 	
 	hit_pos = ro + rd * hit;
 	

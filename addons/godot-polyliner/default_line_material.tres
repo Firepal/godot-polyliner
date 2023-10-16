@@ -1,13 +1,18 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=2]
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://lvwau67a4dxu"]
 
-[ext_resource path="res://addons/godot-polyliner/shaders/line_pbr.gdshader" type="Shader" id=1]
+[ext_resource type="Shader" uid="uid://c30na0obdky88" path="res://addons/godot-polyliner/shaders/line_pbr.tres" id="1_giuxj"]
 
 [resource]
-shader = ExtResource( 1 )
-shader_param/line_width = 0.1
-shader_param/tangent_facing = false
-shader_param/rounded = false
-shader_param/color = Color( 1, 1, 1, 1 )
-shader_param/metallic = 0.0
-shader_param/specular = 0.5
-shader_param/roughness = 0.5
+render_priority = 0
+shader = ExtResource("1_giuxj")
+shader_parameter/line_width = 0.1
+shader_parameter/tangent_facing = false
+shader_parameter/rounded = false
+shader_parameter/uv_matches_width = true
+shader_parameter/tex_stretch = true
+shader_parameter/tex_scale = Vector2(1, 1)
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/metallic = 0.0
+shader_parameter/specular = 0.5
+shader_parameter/roughness = 0.5
+shader_parameter/tube_normal = true

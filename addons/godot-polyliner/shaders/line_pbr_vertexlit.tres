@@ -1,9 +1,12 @@
-shader_type spatial;
+[gd_resource type="Shader" format=3 uid="uid://csvydtabmmhi7"]
+
+[resource]
+code = "shader_type spatial;
 render_mode skip_vertex_transform, cull_disabled;
 render_mode vertex_lighting;
 //render_mode depth_draw_opaque;
 
-#include "include/polyliner_inc.gdshaderinc"
+#include \"res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc\"
 
 uniform float line_width = 0.1;
 uniform sampler2D width_curve : source_color;
@@ -56,4 +59,4 @@ void fragment() {
 	SPECULAR = specular;
 	ROUGHNESS = roughness;
 	METALLIC = metallic;
-}
+}"

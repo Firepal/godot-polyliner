@@ -1,15 +1,12 @@
-[gd_scene load_steps=52 format=3 uid="uid://bk6p2ir23a777"]
+[gd_scene load_steps=50 format=3 uid="uid://bk6p2ir23a777"]
 
 [ext_resource type="Environment" uid="uid://dd5bpvybxmy6u" path="res://addons/godot-polyliner/demos/default_env.tres" id="1"]
-[ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/line_glow.gdshader" id="2"]
 [ext_resource type="Script" path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" id="3"]
 [ext_resource type="Script" path="res://addons/godot-polyliner/Trail3D/Trail3D.gd" id="4"]
-[ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/line_pbr.gdshader" id="4_lth6p"]
-[ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/line_fade.gdshader" id="5"]
-[ext_resource type="Texture2D" uid="uid://cb8k87cb23x2f" path="res://addons/godot-polyliner/LDR_RGBA_0.png" id="5_igh4o"]
+[ext_resource type="Shader" uid="uid://c30na0obdky88" path="res://addons/godot-polyliner/shaders/line_pbr.tres" id="4_12q1m"]
+[ext_resource type="Shader" uid="uid://bpkesrnyx2hr5" path="res://addons/godot-polyliner/shaders/line_fade.tres" id="5_kk3ms"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_rope.gdshader" id="6"]
-[ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmasgarland.gdshader" id="9"]
-[ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmaslightbulbs.gdshader" id="10"]
+[ext_resource type="Shader" uid="uid://c2c7sknvw28nm" path="res://addons/godot-polyliner/shaders/line_glow.tres" id="8_c1yqp"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_chain.gdshader" id="11"]
 
 [sub_resource type="GDScript" id="1"]
@@ -33,11 +30,6 @@ func _process(delta):
 [sub_resource type="ShaderMaterial" id="31"]
 render_priority = 10
 shader = ExtResource("6")
-shader_parameter/line_width = 0.05
-shader_parameter/ao_samples = 16.0
-shader_parameter/color = Color(1, 1, 0.5, 1)
-shader_parameter/twirl_aspect = 0.542
-shader_parameter/ao_power = 1.0
 
 [sub_resource type="StandardMaterial3D" id="35"]
 metallic = 1.0
@@ -56,7 +48,7 @@ point_count = 6
 
 [sub_resource type="ShaderMaterial" id="7"]
 render_priority = 0
-shader = ExtResource("4_lth6p")
+shader = ExtResource("4_12q1m")
 shader_parameter/line_width = 0.035
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = false
@@ -70,7 +62,7 @@ shader_parameter/roughness = 0.5
 shader_parameter/tube_normal = true
 
 [sub_resource type="Curve3D" id="8"]
-bake_interval = 0.22
+bake_interval = 0.27
 _data = {
 "points": PackedVector3Array(0.185279, -0.620741, -0.265847, -0.185279, 0.620741, 0.265847, -0.0542579, 0.474095, -0.305593, 0.176258, 0.985339, -0.464011, -0.176258, -0.985339, 0.464011, -0.435987, 0.312722, 1.09197),
 "tilts": PackedFloat32Array(0, 0)
@@ -86,10 +78,10 @@ curve = SubResource("49")
 
 [sub_resource type="ShaderMaterial" id="9"]
 render_priority = 0
-shader = ExtResource("5")
-shader_parameter/line_width = 0.165
+shader = ExtResource("5_kk3ms")
+shader_parameter/line_width = 0.155
 shader_parameter/tangent_facing = false
-shader_parameter/tangent_offset = 0.0
+shader_parameter/tangent_offset = -0.16
 shader_parameter/color = Color(1, 0, 0, 1)
 shader_parameter/alpha_curve = 0.5
 shader_parameter/width_curve = SubResource("50")
@@ -105,16 +97,20 @@ point_count = 2
 [sub_resource type="ShaderMaterial" id="11"]
 render_priority = 0
 shader = ExtResource("6")
-shader_parameter/line_width = 0.13
-shader_parameter/ao_samples = 28.0
-shader_parameter/color = Color(1, 1, 0.5, 1)
-shader_parameter/twirl_aspect = 4.0
-shader_parameter/ao_power = 1.0
-shader_parameter/blue_noise = ExtResource("5_igh4o")
 
 [sub_resource type="ShaderMaterial" id="57"]
 render_priority = 0
 shader = ExtResource("11")
+shader_parameter/twirl_aspect = 8.0
+shader_parameter/extra_angle = 0.0
+shader_parameter/line_width = 0.105
+shader_parameter/link_radius = 0.15
+shader_parameter/link_thickness = 0.05
+shader_parameter/repeat_size = 1.0
+shader_parameter/repeat_size_b = 0.1
+shader_parameter/roughness = 0.25
+shader_parameter/metallic = 1.0
+shader_parameter/color = Color(0.9, 0.9, 0.9, 1)
 
 [sub_resource type="Curve3D" id="32"]
 bake_interval = 0.15
@@ -133,9 +129,9 @@ curve = SubResource("53")
 
 [sub_resource type="ShaderMaterial" id="33"]
 render_priority = 0
-shader = ExtResource("2")
-shader_parameter/line_width = 0.014
-shader_parameter/glow_width = 0.173
+shader = ExtResource("8_c1yqp")
+shader_parameter/line_width = 0.045
+shader_parameter/glow_width = 0.238
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
 shader_parameter/color = Color(0, 0.4, 1, 1)
@@ -160,7 +156,7 @@ curve = SubResource("Curve_3airw")
 
 [sub_resource type="ShaderMaterial" id="13"]
 render_priority = 0
-shader = ExtResource("4_lth6p")
+shader = ExtResource("4_12q1m")
 shader_parameter/line_width = 0.03
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
@@ -252,14 +248,47 @@ size = Vector2(12, 4)
 
 [sub_resource type="QuadMesh" id="28"]
 
+[sub_resource type="Shader" id="Shader_4y0tk"]
+code = "shader_type spatial;
+render_mode skip_vertex_transform, cull_disabled;
+render_mode unshaded;
+//render_mode blend_add;
+
+#include \"include/polyliner_inc.gdshaderinc\"
+
+// Shader for swooshy sword effects.
+// Only really makes sense to use this
+// with Tangent Facing enabled
+
+uniform float line_width = 0.4;
+uniform sampler2D width_curve : source_color;
+uniform bool tangent_facing = true;
+uniform float tangent_offset = 0.5;
+
+void vertex() {
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	
+	float is_end;
+	quick_line(line_width,false);
+	
+	VERTEX += TANGENT * tangent_offset;
+}
+
+uniform vec4 color : source_color = vec4(vec3(1.0),1.0);
+uniform float alpha_curve : hint_range(0.0,1.0,0.005) = 0.5;
+void fragment(){
+	NORMAL = FRONT_FACING ? NORMAL : -NORMAL;
+	float thing = smoothstep(1.0,0.0,UV.x);
+	thing = 1.0-pow(thing,alpha_curve);
+	ALPHA = thing;
+	ALBEDO = mix(color.rgb,vec3(1.0),thing);
+}"
+
 [sub_resource type="ShaderMaterial" id="39"]
 render_priority = 0
-shader = ExtResource("5")
-shader_parameter/line_width = 0.4
-shader_parameter/tangent_facing = true
-shader_parameter/tangent_offset = 0.5
-shader_parameter/color = Color(1, 1, 1, 1)
-shader_parameter/alpha_curve = 0.5
+shader = SubResource("Shader_4y0tk")
 
 [sub_resource type="Shader" id="40"]
 code = "shader_type spatial;
@@ -366,48 +395,52 @@ shader_parameter/roughness = 0.5
 [sub_resource type="Curve3D" id="42"]
 bake_interval = 0.01
 _data = {
-"points": PackedVector3Array(-0.431866, 0.308713, -0.33343, 0.431866, -0.308713, 0.33343, -1.08351, 0.776258, -1.53599, -0.585661, -0.271522, -0.314762, 0.585661, 0.271522, 0.314762, 0.437512, 0.882522, 0.619004),
+"points": PackedVector3Array(-0.376543, 0.347183, -0.131945, 0.376543, -0.347183, 0.131945, -1.08351, 0.776258, -1.53599, -0.634989, -0.754262, -0.378784, 0.634989, 0.754262, 0.378784, 0.437512, 0.882522, 0.619004),
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
 
 [sub_resource type="ShaderMaterial" id="52"]
 render_priority = 0
-shader = ExtResource("9")
-shader_parameter/line_width = 0.02
-shader_parameter/stretch = 8.0
-shader_parameter/angle = 0.0
-shader_parameter/repeat_size = 0.04
-shader_parameter/spokes = 9.0
-shader_parameter/rot_angle = 0.0
-shader_parameter/rot_period = 3.236
-shader_parameter/roughness = 1.0
-shader_parameter/color = Color(0.1, 0.2, 0.1, 1)
-shader_parameter/g_color = Color(0.3, 0.6, 0.3, 1)
+shader = ExtResource("11")
+shader_parameter/twirl_aspect = 8.0
+shader_parameter/extra_angle = 0.0
+shader_parameter/line_width = 0.025
+shader_parameter/link_radius = 0.15
+shader_parameter/link_thickness = 0.05
+shader_parameter/repeat_size = 1.0
+shader_parameter/repeat_size_b = 0.1
+shader_parameter/roughness = 0.25
+shader_parameter/metallic = 1.0
+shader_parameter/color = Color(0.1, 0.1, 0.1, 1)
 
 [sub_resource type="Curve3D" id="55"]
+bake_interval = 0.01
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.138806, 0.352063, -1.6087, 0.0670831, 0.15438, -0.956504, -0.0670831, -0.15438, 0.956504, 0.282547, 1.0739, 0.788092),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -0.144465, 0.64283, -0.798111, 0, 0, 0, 0.030962, -1.36768, 1.40599, -0.182767, 1.68482, -0.800977),
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
 
-[sub_resource type="ShaderMaterial" id="56"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_t44jp"]
 render_priority = 0
-shader = ExtResource("10")
-shader_parameter/line_width = 0.033
-shader_parameter/twirl_aspect = 2.0
-shader_parameter/angle = 0.0
-shader_parameter/repeat_size = 0.1
-shader_parameter/rot_angle = 0.0
-shader_parameter/rot_period = 29.124
-shader_parameter/roughness = 0.5
-shader_parameter/color = Color(0.1, 0.1, 0.1, 1)
+shader = ExtResource("4_12q1m")
+shader_parameter/line_width = 0.08
+shader_parameter/tangent_facing = false
+shader_parameter/rounded = true
+shader_parameter/uv_matches_width = true
+shader_parameter/tex_stretch = true
+shader_parameter/tex_scale = Vector2(1, 1)
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/metallic = 1.0
+shader_parameter/specular = 0.5
+shader_parameter/roughness = 0.15
+shader_parameter/tube_normal = true
 
 [node name="Node3D" type="Node3D"]
 
 [node name="wormspinner" type="Node3D" parent="."]
-transform = Transform3D(-0.0420811, 0, -0.999107, 0, 0.999999, 0, 0.999099, 0, -0.0420815, 0.305224, 0.016, 3.531)
+transform = Transform3D(0.881968, 0, 0.47128, 0, 0.999999, 0, -0.471277, 0, 0.881975, 0.301393, 0.016, 3.531)
 script = SubResource("1")
 mul = 1.59
 
@@ -432,7 +465,7 @@ script = ExtResource("3")
 material = SubResource("7")
 
 [node name="wireframe" type="Path3D" parent="."]
-transform = Transform3D(0.991497, 0, 0.130128, 0, 1, 0, -0.130128, 0, 0.991497, -0.638963, 0.205764, 3.83932)
+transform = Transform3D(0.991497, 0, 0.130128, 0, 1, 0, -0.130128, 0, 0.991497, -0.815953, 0.041678, 3.27186)
 curve = SubResource("8")
 script = ExtResource("3")
 material = SubResource("9")
@@ -444,8 +477,7 @@ script = ExtResource("3")
 material = SubResource("11")
 
 [node name="rope2" type="Path3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.100197, 0.297392, -0.433491)
-visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.100197, 0.297392, -0.94215)
 curve = SubResource("10")
 script = ExtResource("3")
 material = SubResource("57")
@@ -496,12 +528,11 @@ script = ExtResource("3")
 material = SubResource("13")
 
 [node name="2" type="OmniLight3D" parent="Node3D"]
-transform = Transform3D(-0.0217765, 0.141366, 0.989718, -0.299399, 0.943597, -0.141366, -0.953879, -0.299399, 0.0217766, 1.3535, 0.45135, -0.406207)
+transform = Transform3D(-0.043553, 0.282732, 1.97944, -0.598798, 1.88719, -0.282732, -1.90776, -0.598798, 0.0435533, 0.863134, 1.63878, -1.11642)
 light_color = Color(1, 0.94, 1, 1)
-light_energy = 2.935
-light_size = 0.239
+light_size = 0.1
 shadow_enabled = true
-shadow_bias = 0.048
+shadow_bias = 0.005
 omni_range = 20.0
 omni_attenuation = 2.0
 
@@ -553,13 +584,18 @@ damping = 0.738
 material = SubResource("41")
 
 [node name="LinePath3D" type="Path3D" parent="."]
-transform = Transform3D(0.998648, 0.0519874, 0, -0.0519874, 0.998648, 0, 0, 0, 1, 2.53022, 1.1862, 3.69593)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.53022, 1.1862, 3.69593)
 curve = SubResource("42")
 script = ExtResource("3")
 material = SubResource("52")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.153023, 1.20027, 3.35399)
+visible = false
+
+[node name="OmniLight3D2" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.854231, 1.48709, -0.78489)
+visible = false
 
 [node name="OmniLight2" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.442994, 0.503658, 2.12577)
@@ -573,7 +609,7 @@ shadow_enabled = true
 [node name="LinePath3D2" type="Path3D" parent="."]
 curve = SubResource("55")
 script = ExtResource("3")
-material = SubResource("56")
+material = SubResource("ShaderMaterial_t44jp")
 
 [node name="ReflectionProbe" type="ReflectionProbe" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.22816, 1.89413)

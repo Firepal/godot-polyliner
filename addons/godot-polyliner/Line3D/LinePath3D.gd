@@ -34,21 +34,18 @@ var _linegen = LineGen3D.new()
 func set_renderer(value):
 	renderer = value
 	
-	if _mesh_instance and _imm_geo:
+	if _mesh_instance:
 		if Engine.is_editor_hint():
 			_show_mesh_instance()
 		else:
 			match value:
 				Renderer.STATIC: _show_mesh_instance()
-				Renderer.IMMEDIATE: _show_imm_geo()
 	_rd()
 
 func _show_imm_geo():
 	push_warning("Immediate renderer is not implemented.")
 	_mesh_instance.visible = false
-	_imm_geo.visible = true
 func _show_mesh_instance():
-	_imm_geo.visible = false
 	_mesh_instance.visible = true
 
 func set_render_mode(value):
@@ -76,11 +73,9 @@ func set_material(mat):
 
 var _mesh_instance = null
 var _imm_sf = ImmediateSurface.new()
-var _imm_geo : ImmediateMesh = null
 
 func _update_material():
 	_mesh_instance.material_override = material
-	_imm_geo.material_override = material
 	
 func _enter_tree():
 	for child in get_children():
