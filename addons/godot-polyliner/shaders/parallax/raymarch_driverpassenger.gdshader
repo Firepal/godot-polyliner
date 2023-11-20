@@ -6,52 +6,13 @@ render_mode blend_add;
 // \"tangent-facing\" code and \"rounded end\" code was removed
 // for this particular shader
 
+const float RAY_MISS = 1e-20;
+
 uniform float line_width = 0.05;
 #include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
-vec3 hash31(float p) {
-   vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
-   p3 += dot(p3, p3.yzx+33.33);
-   return fract((p3.xxy+p3.yzz)*p3.zyx); 
-}
-
-mat3 rotateAlign( vec3 v1, vec3 v2 )
-{
-	vec3 axis = cross( v1, v2 );
-	
-	float cosA = dot( v1, v2 );
-	float k = 1.0 / (1.0 + cosA);
-	
-	mat3 result = mat3(
-		vec3(
-		(axis.x * axis.x * k) + cosA,
-		(axis.y * axis.x * k) - axis.z, 
-		(axis.z * axis.x * k) + axis.y),
-		vec3(
-			(axis.x * axis.y * k) + axis.z,  
-			(axis.y * axis.y * k) + cosA,      
-			(axis.z * axis.y * k) - axis.x),
-		vec3(
-			(axis.x * axis.z * k) - axis.y,  
-			(axis.y * axis.z * k) + axis.x,  
-			(axis.z * axis.z * k) + cosA)
-		);
-
-	return result;
-}
-
-mat3 rotation3dX(float angle) {
-	float s = sin(angle);
-	float c = cos(angle);
-
-	return mat3(
-		vec3(1.0, 0.0, 0.0),
-		vec3(0.0, c, s),
-		vec3(0.0, -s, c)
-	);
-}
 uniform float twirl_aspect = 0.5;
-uniform float circle_margin = 1.0;
+uniform float circle_margin = 2.0;
 uniform float angle = 0.0;
 
 varying vec3 ray_dir;
@@ -68,8 +29,8 @@ void vertex(){
 	
 	
 	TBN = mat3(
-		TANGENT,
 		BINORMAL,
+		TANGENT,
 		NORMAL
 	);
 	
@@ -80,7 +41,7 @@ void vertex(){
 	TBN *= rot;
 	
 	ray_dir = VERTEX * TBN;
-	ray_origin = vec3(UV,0.2);
+	ray_origin = vec3(UV,0.0);
 	float asp = twirl_aspect / line_width;
 	asp *= UV2.x;
 	
@@ -150,27 +111,25 @@ vec3 getNormal( in vec3 p )
 }
 
 vec2 raymarch(vec3 ro, vec3 rd) {
-	float total_dist = 0.0;
+	float total_dist = -1.0;
 	float min_dist = 1e20;
 	
-	for(int i=0;i<30;i++){
-		// culling below 3.0 is excessive
-		// and even more visible at grazing angles
-		if (total_dist > 5.0) { break; }
+	for(int i=0;i<128;i++){
+		if (total_dist > 1.0) { break; }
 		
 		vec3 ray = ro + (rd * total_dist);
 		
 		float dist = scene(ray).x;
 		
-		if (dist < 0.001){
+		if (dist < 0.01){
 			return vec2(total_dist,dist);
 		}
 		
 		min_dist = min(dist,min_dist);
-		total_dist += dist;
+		total_dist += dist*0.2;
 	}
 	
-	return vec2(-1.0,min_dist);
+	return vec2(RAY_MISS,min_dist);
 }
 
 vec3 hashcol(float seed) {

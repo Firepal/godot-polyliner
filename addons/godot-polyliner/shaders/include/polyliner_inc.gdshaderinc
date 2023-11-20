@@ -1,4 +1,4 @@
-#define PLYLINE_INPUTS VERTEX,UV,TANGENT,BINORMAL,NORMAL
+#define PLYLINE_INPUTS VERTEX,UV,UV2,TANGENT,BINORMAL,NORMAL
 #define quick_line(width,rounded) \
 	LineData ld = pak_linedata(PLYLINE_INPUTS,width,rounded); \
 	is_end = line_process(ld); \
@@ -6,6 +6,7 @@
 
 struct LineData {
 	float width;
+	float total_length;
 	vec3 vertex, dir_to_cam;
 	vec2 uv;
 	mat3 tbn;
@@ -14,7 +15,7 @@ struct LineData {
 	bool tangent_facing, rounded;
 };
 
-#define __LD_MESH_ARGS inout vec3 vertex, inout vec2 uv, \
+#define __LD_MESH_ARGS inout vec3 vertex, inout vec2 uv, inout vec2 uv2, \
 	inout vec3 tangent, inout vec3 binormal, inout vec3 normal
 
 LineData pak_linedata(__LD_MESH_ARGS, float width, bool rounded){
@@ -23,6 +24,7 @@ LineData pak_linedata(__LD_MESH_ARGS, float width, bool rounded){
 	ld.vertex = vertex;
 	ld.dir_to_cam = normalize(vertex);
 	ld.uv = uv;
+	ld.total_length = uv2.x;
 	ld.tbn = mat3(
 		tangent,
 		binormal,
@@ -58,64 +60,43 @@ float line_process(inout LineData ld){
 	
 //	tangent = perp;
 //	normal = cross(perp,dir_to_next_point);
-//	ld.tbn[0] = normalize(perp);
-//	ld.tbn[2] = normalize(cross(perp,dir_to_next_point));
-//	ld.tbn[1] = (cross(ld.tbn[2],ld.tbn[0]));
+	ld.tbn[0] = normalize(perp);
+	ld.tbn[2] = normalize(cross(perp,dir_to_next_point));
+	ld.tbn[1] = (cross(ld.tbn[0],ld.tbn[2]));
 	
 	// fixes raymarching but breaks lighting
-	ld.tbn[1] = perp;
-	ld.tbn[2] = normalize(cross(perp,dir_to_next_point));
-	ld.tbn[0] = normalize(cross(ld.tbn[1],ld.tbn[2]));
+//	ld.tbn[1] = perp;
+//	ld.tbn[2] = normalize(cross(perp,dir_to_next_point));
+//	ld.tbn[0] = normalize(cross(ld.tbn[1],ld.tbn[2]));
 	
 	return is_end;
 }
 
-//float line_process_rounded_curve(inout LineData ld){
-//	vec3 dir_to_next_point = ld.tbn[2];
-//	vec3 perp = ld.tbn[0];
-//	if (!ld.tangent_facing) {
-//		perp = normalize(cross(ld.dir_to_cam,dir_to_next_point));
-//	}
-//
-//	float is_end = 0.5-ld.uv.x;
-//	ld.is_end = float(abs(ld.is_end) > 0.5) * -sign(ld.is_end);
-//	vec3 rounder = vec3(0.0); 
-//	if (ld.rounded) { 
-//		rounder = is_end * normalize(cross(perp,ld.dir_to_cam));
-//	}
-//
-//	float side = sign(float(ld.uv.y > 0.5)-0.5);
-//	ld.vertex += ((perp*side)-rounder) * ld.width;
-//
-//	ld.tbn[1] = perp;
-//	ld.tbn[2] = cross(perp,dir_to_next_point);
-//	ld.tbn[0] = cross(ld.tbn[2],ld.tbn[1]);
-//
-//	return is_end;
-//}
-
 // SHADING
 
 float getDistToLineCenter(vec2 uv, float is_end) {
-	vec2 c = vec2(is_end*0.5,uv.y-0.5);
-	return length(c)*0.5;
+	return length(vec2(is_end,uv.y*2.0-1.0));
 }
 
 float getDistSquaredToLineCenter(vec2 uv, float is_end) {
-	vec2 c = vec2(is_end*0.5,uv.y-0.5);
+	vec2 c = vec2(is_end,uv.y*2.0-1.0);
 	return dot(c,c);
 }
 
 vec3 getLineTubeNormal(vec2 uv, float is_end, bool rounded) {
 	vec3 n = vec3(0.0,0.0,1.0);
-		n.x = uv.y*2.0-1.0;
-		if (rounded) {
-			n.y = (is_end);
-		}
+	n.x = uv.y*2.0-1.0;
+	n.y = is_end*float(rounded);
 	return normalize(n)*0.5+0.5;
 }
 
 // MISC
+
+
+float magic_aa(float coef, vec3 vertex, vec2 screen_size) {
+		float sofdamp = coef/dot(screen_size,screen_size);
+		return vertex.z * sofdamp;
+}
 
 vec3 hash31(float p) {
    vec3 p3 = fract(vec3(p) * vec3(.1031, .1030, .0973));
@@ -149,9 +130,9 @@ mat3 rotateAlign( vec3 v1, vec3 v2 )
 	return result;
 }
 
-mat3 rotation3dX(float angle) {
-	float s = sin(angle);
-	float c = cos(angle);
+mat3 rotation3dX(float _a) {
+	float s = sin(_a);
+	float c = cos(_a);
 
 	return mat3(
 		vec3(1.0, 0.0, 0.0),
@@ -159,3 +140,4 @@ mat3 rotation3dX(float angle) {
 		vec3(0.0, -s, c)
 	);
 }
+

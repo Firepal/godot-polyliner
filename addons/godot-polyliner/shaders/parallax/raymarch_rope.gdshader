@@ -28,6 +28,10 @@ float line_processe(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 }
 #include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
+uniform vec4 color : source_color = vec4(vec3(1.0,1.0,0.5),1.0);
+uniform float aspect = 4;
+uniform bool stretch = false;
+
 varying mat3 TBN;
 varying float is_end;
 void vertex(){
@@ -35,26 +39,15 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-//	is_end = line_processe(line_width,VERTEX,normalize(VERTEX),UV,NORMAL,TANGENT);
 	quick_line(line_width,false)
 	
-	BINORMAL = cross(TANGENT,NORMAL);
+	float line_length = UV2.x;
+	if (!stretch) { UV.x *= line_length; }
 	
 	TBN = mat3(
+		BINORMAL,
 		TANGENT,
-		-BINORMAL,
 		NORMAL
-	);
-}
-
-mat3 rotation3dX(float angle) {
-	float s = sin(angle);
-	float c = cos(angle);
-
-	return mat3(
-		vec3(1.0, 0.0, 0.0),
-		vec3(0.0, c, s),
-		vec3(0.0, -s, c)
 	);
 }
 
@@ -108,11 +101,11 @@ float raymarch_base(
 }
 
 float raymarch(vec3 ro, vec3 rd){
-	return raymarch_base(ro,rd,512,0.00001,2.0,-2.0);
+	return raymarch_base(ro,rd,512,0.001,0.6,-3.0);
 }
 
 float raymarch_ao(vec3 ro, vec3 rd){
-	return raymarch_base(ro,rd,32,0.001,0.3,0.2);
+	return raymarch_base(ro,rd,32,0.01,0.2,0.15);
 }
 
 float raymarch_light(vec3 ro, vec3 rd){
@@ -136,35 +129,31 @@ vec2 hash22(vec2 p)
 	return fract((p3.xx+p3.yz)*p3.zy);
 }
 
-uniform sampler2D blue_noise : filter_nearest, source_color;
-
-vec2 R2(uint index) {
-	const float g = 1.32471795724474602596;
-	const float a1 = 1.0f/g;
-	const float a2 = 1.0f/(g*g);
-	return vec2(float(index)*a1, float(index)*a2);
+float IGN(vec2 p) {
+	vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
+	return fract( magic.z * fract(dot(p,magic.xy)) );
 }
 
-float blue_noise_1(inout uvec3 state) {
-	vec2 uv = vec2(state.xy) / 1024.0 + R2(state.z % uint(256));
-	state.z = state.z + uint(1);
-	return textureLod(blue_noise, uv, 0)[(state.z*uint(4)) % uint(3)];
+float noise(inout uvec3 state) {
+	vec2 uv = vec2(state.xy) + float(state.z)*5.588238;
+	state.z = (state.z + 1u);
+	return IGN(uv);
 }
 
-uniform float ao_samples : hint_range(1,128,1) = 16;
+uniform float ao_samples : hint_range(1,128,1) = 4;
 float ao(vec3 p, vec3 n, vec2 fragcoord)
 {
 	vec3 t = normalize(cross(n,vec3(0.0,1.0,0.0)));
 	vec3 b = normalize(cross(t,n));
 	
 	float inv_t = 1.0/ao_samples;
-	uvec3 state = uvec3(uvec2(fragcoord),uint(TIME*1000.0*1.618));
+	uvec3 state = uvec3(uvec2(fragcoord),uint(mod(TIME,2.0)*100.0*1.618));
 	float occ = 0.0;
 	for (float i=0.0; i < ao_samples; i++)
 	{
 		vec2 aa;
-		aa.x = blue_noise_1(state);
-		aa.y = blue_noise_1(state);
+		aa.x = noise(state);
+		aa.y = noise(state);
 		
 		float ra = sqrt(aa.y);
 		float rx = ra*cos(6.2831*aa.x); 
@@ -172,21 +161,15 @@ float ao(vec3 p, vec3 n, vec2 fragcoord)
 		float rz = sqrt( 1.0-aa.y );
 		vec3  dir = vec3( (rx*t)+(ry*b)+(rz*n) );
 		
-		float hit = float(raymarch_ao(p,dir) != RAY_MISS);
-//		occ = 1.0-hit;
-		occ = (inv_t * (1.0-hit)) + occ;
+		float hit = 1.0-float(raymarch_ao(p,dir) != RAY_MISS);
+		occ = (inv_t * hit) + occ;
 	}
 	
 	return occ;
 }
 
-uniform vec4 color : source_color = vec4(vec3(1.0,1.0,0.5),1.0);
-uniform float twirl_aspect = 2;
-
-uniform float ao_power : hint_range(0,2,0.001) = 1.0;
-
 vec3 get_ro(vec2 uv) {
-	vec2 scale = vec2(twirl_aspect / line_width, 1.0);
+	vec2 scale = vec2(aspect / line_width, 1.0);
 	return vec3((uv*scale)-0.5,0.0);
 }
 
@@ -196,9 +179,8 @@ bool ray_miss(float hit) {
 
 varying vec3 hit_pos;
 varying vec3 hit_normal;
-uniform float xez;
 void fragment() {
-	vec3 ro = get_ro(UV) * xez;
+	vec3 ro = get_ro(UV);
 	vec3 rd = normalize(-VIEW * TBN);
 	
 	float hit = raymarch(ro, rd);
@@ -213,11 +195,11 @@ void fragment() {
 	ALBEDO = color.rgb;
 //	ALPHA = smoothstep(-VERTEX.z*0.2,-0.1,dist);
 //	ALBEDO = vec3(smoothstep(170.0,0.0,dist));
+
 	float ao = ao(hit_pos, hit_normal, FRAGCOORD.xy);
-//	ao = pow(ao,ao_power);
 	AO = ao;
-//	ALBEDO *= ao;
-//	uvec3 state = uvec3(uvec2(FRAGCOORD.xy),uint(TIME*100.0));
+
+//	uvec3 state = uvec3(uvec2(FRAGCOORD.xy),uint(TIME*1.0));
 //	ALBEDO = vec3(blue_noise_1(state));
 }
 

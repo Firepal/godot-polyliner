@@ -283,11 +283,14 @@ func draw_from_points_strip(p : PackedVector3Array = PackedVector3Array(),
 	
 	
 	var acc = 0.0
+	var last_dist = p[0].distance_squared_to(p[1])
 	for i in range(ps-1):
-		acc += p[i].distance_squared_to(p[i+1])
+		var cur_dist =p[i].distance_squared_to(p[i+1])
+		acc += lerp(cur_dist,last_dist,0.2)
 #	print(acc)
 	acc = sqrt(acc)
-	line_length = acc
+	var ll = acc
+#	line_length = ll
 	
 	var inv_ps = 1.0/(ps-1)
 	

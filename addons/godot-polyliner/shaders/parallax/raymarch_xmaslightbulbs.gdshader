@@ -9,7 +9,7 @@ render_mode skip_vertex_transform;
 
 uniform float line_width = 0.05;
 
-uniform float twirl_aspect = 2;
+uniform float twirl_aspect = 0.5;
 uniform float angle = 0.0;
 
 varying vec3 ray_origin;
@@ -23,8 +23,8 @@ void vertex(){
 	quick_line(line_width,false)
 	
 	TBN = mat3(
-		TANGENT,
 		BINORMAL,
+		TANGENT,
 		NORMAL
 	);
 	
@@ -107,32 +107,12 @@ vec2 scene(vec3 p) {
 
 vec3 getNormal( in vec3 p )
 {
-	const float h = 0.001;
-	const vec2 k = vec2(1,-1);
-	return normalize( k.xyy*scene( p + k.xyy*h ).x + 
+    const float h = 0.0001;
+    const vec2 k = vec2(1,-1);
+    return normalize( k.xyy*scene( p + k.xyy*h ).x + 
                       k.yyx*scene( p + k.yyx*h ).x + 
                       k.yxy*scene( p + k.yxy*h ).x + 
                       k.xxx*scene( p + k.xxx*h ).x );
-}
-
-float raymarch(vec3 ro, vec3 rd){
-	float total_dist = -0.8;
-	float r = smoothstep(-0.04,0.3,repeat_size);
-	for(int i=0;i<128;i++){
-		if (total_dist > 10.0) { break; }
-		
-		vec3 ray = ro + (rd * total_dist);
-		
-		float dist = scene(ray).x;
-		
-		if (dist < 0.0001){
-			return total_dist;
-		}
-		
-		total_dist += dist*r;
-	}
-	
-	return -1e20;
 }
 
 vec3 hashcol(float seed) {
@@ -147,6 +127,26 @@ vec3 hashcol(float seed) {
 	return vec3(co);
 }
 
+float raymarch(vec3 ro, vec3 rd){
+	float total_dist = -0.8;
+	float r = smoothstep(-0.04,0.3,repeat_size);
+	for(int i=0;i<128;i++){
+		if (total_dist > 80.0) { break; }
+		
+		vec3 ray = ro + (rd * total_dist);
+		
+		float dist = scene(ray).x;
+		
+		if (dist < 0.00001){
+			return total_dist;
+		}
+		
+		total_dist += dist*r;
+	}
+	
+	return -1e20;
+}
+
 uniform float roughness : hint_range(0.0, 1.0, 0.001) = 0.5;
 uniform vec4 color : source_color = vec4(vec3(0.1),1.0);
 
@@ -158,11 +158,11 @@ void fragment(){
 	vec3 rd = -VIEW * TBN;
 	
 	float hit_info = raymarch(ro, rd);
+	
+	if (hit_info == -1e20) { discard; }
 	vec3 hit_pos = ro + rd * hit_info;
 	
 	float colhash = scene(hit_pos).y;
-	
-	if (hit_info == -1e20) { discard; }
 	
 	vec3 hit_normal = TBN * getNormal(hit_pos);
 	

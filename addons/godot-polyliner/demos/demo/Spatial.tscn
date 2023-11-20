@@ -1,4 +1,4 @@
-[gd_scene load_steps=50 format=3 uid="uid://bk6p2ir23a777"]
+[gd_scene load_steps=56 format=3 uid="uid://bk6p2ir23a777"]
 
 [ext_resource type="Environment" uid="uid://dd5bpvybxmy6u" path="res://addons/godot-polyliner/demos/default_env.tres" id="1"]
 [ext_resource type="Script" path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" id="3"]
@@ -6,7 +6,11 @@
 [ext_resource type="Shader" uid="uid://c30na0obdky88" path="res://addons/godot-polyliner/shaders/line_pbr.tres" id="4_12q1m"]
 [ext_resource type="Shader" uid="uid://bpkesrnyx2hr5" path="res://addons/godot-polyliner/shaders/line_fade.tres" id="5_kk3ms"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_rope.gdshader" id="6"]
+[ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_ticker.gdshader" id="6_5q0jx"]
 [ext_resource type="Shader" uid="uid://c2c7sknvw28nm" path="res://addons/godot-polyliner/shaders/line_glow.tres" id="8_c1yqp"]
+[ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmaslightbulbs.gdshader" id="8_fk2di"]
+[ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_driverpassenger.gdshader" id="9_rawnu"]
+[ext_resource type="Shader" uid="uid://dno2b0s1fv77i" path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmasgarland.tres" id="10_gpltd"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_chain.gdshader" id="11"]
 
 [sub_resource type="GDScript" id="1"]
@@ -27,9 +31,14 @@ func _process(delta):
 #	rotation.y = sin(timer)*1.5+1.2
 "
 
-[sub_resource type="ShaderMaterial" id="31"]
-render_priority = 10
+[sub_resource type="ShaderMaterial" id="11"]
+render_priority = 0
 shader = ExtResource("6")
+shader_parameter/line_width = 0.055
+shader_parameter/color = Color(1, 1, 0.501961, 1)
+shader_parameter/aspect = 2.0
+shader_parameter/stretch = true
+shader_parameter/ao_samples = 4.0
 
 [sub_resource type="StandardMaterial3D" id="35"]
 metallic = 1.0
@@ -39,9 +48,9 @@ roughness = 0.31
 material = SubResource("35")
 
 [sub_resource type="Curve3D" id="6"]
-bake_interval = 0.01
+bake_interval = 0.26
 _data = {
-"points": PackedVector3Array(-0.681473, 0.501452, 0.0499668, -0.0453298, -0.808289, -0.422336, -0.287503, 1.98422, 3.27149, -0.0263753, -0.319308, 0.277562, 0.211185, -0.271242, -0.129593, -0.702265, 1.97101, 1.42616, -0.404719, -0.395793, 0.304124, 0.250978, -0.285766, -0.20488, -0.182462, 1.93592, 0.452959, -0.0293496, 0.00787398, 0.0273083, 0.0364196, -0.00977075, -0.0338867, 0.778996, 1.91667, -0.265536, -0.465314, 0.0219152, 0.559101, 0.465314, -0.0219152, -0.559101, 1.30247, 0.0139077, -0.142204, -0.690027, -0.0455682, 0.313123, 0.690027, 0.0455682, -0.313123, 2.53523, 0.0637698, -0.73445),
+"points": PackedVector3Array(-0.681473, 0.501452, 0.0499668, -0.0453298, -0.808289, -0.422336, -0.287503, 1.98422, 3.27149, -0.0263753, -0.319308, 0.277562, 0, 0, 0, -0.702265, 1.97101, 1.42616, -0.404719, -0.395793, 0.304124, 0.250978, -0.285766, -0.20488, -0.182462, 1.93592, 0.452959, -0.0293496, 0.00787398, 0.0273083, 0.0364196, -0.00977075, -0.0338867, 0.778996, 1.91667, -0.265536, -0.465314, 0.0219152, 0.559101, 0.465314, -0.0219152, -0.559101, 1.30247, 0.0139077, -0.142204, -0.690027, -0.0455682, 0.313123, 0.690027, 0.0455682, -0.313123, 2.45674, -0.0354496, -0.813197),
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0)
 }
 point_count = 6
@@ -51,10 +60,10 @@ render_priority = 0
 shader = ExtResource("4_12q1m")
 shader_parameter/line_width = 0.035
 shader_parameter/tangent_facing = false
-shader_parameter/rounded = false
+shader_parameter/rounded = true
 shader_parameter/uv_matches_width = true
-shader_parameter/tex_stretch = true
 shader_parameter/tex_scale = Vector2(1, 1)
+shader_parameter/tex_stretch = true
 shader_parameter/color = Color(0.164706, 0.164706, 0.164706, 1)
 shader_parameter/metallic = 0.0
 shader_parameter/specular = 0.5
@@ -62,9 +71,9 @@ shader_parameter/roughness = 0.5
 shader_parameter/tube_normal = true
 
 [sub_resource type="Curve3D" id="8"]
-bake_interval = 0.27
+bake_interval = 0.01
 _data = {
-"points": PackedVector3Array(0.185279, -0.620741, -0.265847, -0.185279, 0.620741, 0.265847, -0.0542579, 0.474095, -0.305593, 0.176258, 0.985339, -0.464011, -0.176258, -0.985339, 0.464011, -0.435987, 0.312722, 1.09197),
+"points": PackedVector3Array(0.21395, -1.21304, -0.0335207, -0.21395, 1.21304, 0.0335207, -0.55582, 0.135384, 0.985799, 0.010679, 1.05351, -0.127781, -0.010679, -1.05351, 0.127781, 0.0316888, 0.258686, -0.390028),
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
@@ -87,23 +96,35 @@ shader_parameter/alpha_curve = 0.5
 shader_parameter/width_curve = SubResource("50")
 
 [sub_resource type="Curve3D" id="10"]
-bake_interval = 0.06
+bake_interval = 0.01
 _data = {
-"points": PackedVector3Array(-0.951817, 0.788958, 1.0159, 0.951817, -0.788958, -1.0159, -1.44897, 1.03614, 3.60563, -0.473102, -1.73579, 1.12136, 0.473102, 1.73579, -1.12136, 4.3468, 1.52296, -0.252387),
+"points": PackedVector3Array(-0.314905, 1.41452, 0.0695871, 0.314905, -1.41452, -0.0695871, -0.2527, 1.27615, -0.198765, 0, 0, 0, 0, 0, 0, 3.777, 1.04701, -0.188479),
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
 
-[sub_resource type="ShaderMaterial" id="11"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qq25h"]
 render_priority = 0
 shader = ExtResource("6")
+shader_parameter/line_width = 0.056
+shader_parameter/color = Color(1, 1, 0.501961, 1)
+shader_parameter/aspect = 4.0
+shader_parameter/stretch = true
+shader_parameter/ao_samples = 4.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eq0cb"]
+render_priority = 0
+shader = ExtResource("6_5q0jx")
+shader_parameter/line_width = 0.05
+shader_parameter/aspect = 1.0
+shader_parameter/stretch = false
 
 [sub_resource type="ShaderMaterial" id="57"]
 render_priority = 0
 shader = ExtResource("11")
-shader_parameter/twirl_aspect = 8.0
+shader_parameter/twirl_aspect = 0.5
 shader_parameter/extra_angle = 0.0
-shader_parameter/line_width = 0.105
+shader_parameter/line_width = 0.027
 shader_parameter/link_radius = 0.15
 shader_parameter/link_thickness = 0.05
 shader_parameter/repeat_size = 1.0
@@ -112,34 +133,75 @@ shader_parameter/roughness = 0.25
 shader_parameter/metallic = 1.0
 shader_parameter/color = Color(0.9, 0.9, 0.9, 1)
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_g5nd2"]
+render_priority = 0
+shader = ExtResource("8_fk2di")
+shader_parameter/line_width = 0.05
+shader_parameter/twirl_aspect = 0.5
+shader_parameter/angle = 0.0
+shader_parameter/repeat_size = 0.085
+shader_parameter/rot_angle = 0.0
+shader_parameter/rot_period = 2.49
+shader_parameter/roughness = 0.5
+shader_parameter/color = Color(0.1, 0.1, 0.1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_52kpf"]
+render_priority = 0
+shader = ExtResource("9_rawnu")
+shader_parameter/line_width = 0.05
+shader_parameter/twirl_aspect = 0.5
+shader_parameter/circle_margin = 2.0
+shader_parameter/angle = 0.0
+shader_parameter/repeat_size = 1.0
+shader_parameter/rot_angle = 0.0
+shader_parameter/rot_period = 1.38
+shader_parameter/roughness = 0.5
+shader_parameter/color = Color(1, 0.1, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_be6ii"]
+render_priority = 0
+shader = ExtResource("10_gpltd")
+shader_parameter/line_width = 0.02
+shader_parameter/stretch = 0.39
+shader_parameter/angle = 0.0
+shader_parameter/repeat_size = 0.02
+shader_parameter/spokes = 1.0
+shader_parameter/rot_angle = 0.0
+shader_parameter/rot_period = 3.521
+shader_parameter/roughness = 1.0
+shader_parameter/color = Color(0.1, 0.2, 0.1, 1)
+shader_parameter/g_color = Color(0.3, 0.6, 0.3, 1)
+
 [sub_resource type="Curve3D" id="32"]
-bake_interval = 0.15
+bake_interval = 1.67
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -0.19442, 0.0866818, -1.76063, 2.33724, -1.66999, -3.70093, -2.33724, 1.66999, 3.70093, -0.721755, 2.50279, -5.27716, 1.3031, -0.628219, -3.35566, -1.3031, 0.628219, 3.35566, -0.0607967, 0.469147, 0.81765, -0.0909576, -0.0492868, 2.82991, 0.0909576, 0.0492868, -2.82991, -2.28991, 4.79095, -1.03035, 0.0524731, 1.97994, -1.77644, -0.0524731, -1.97994, 1.77644, -0.469312, 2.28247, -3.2984, 0.282413, -0.803169, -1.42656, -0.282413, 0.803169, 1.42656, -2.89779, 1.16475, 3.16977, -3.40217, 2.63917, 1.69681, 3.40217, -2.63917, -1.69681, 0.500399, 4.02992, 2.0358),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -0.19442, 0.0866818, -1.76063, 2.33724, -1.66999, -3.70093, -2.33724, 1.66999, 3.70093, -0.721755, 2.50279, -5.27716, 1.3031, -0.628219, -3.35566, -1.3031, 0.628219, 3.35566, -0.0607967, 0.469147, 0.81765, 0.0347347, -1.44808, 3.20064, -0.0347347, 1.44808, -3.20064, -2.29411, 5.39076, -1.00783, 0.0524731, 1.97994, -1.77644, -0.0524731, -1.97994, 1.77644, -0.539491, 1.55789, -3.2768, 0.282413, -0.803169, -1.42656, -0.282413, 0.803169, 1.42656, -2.56665, 1.06918, 2.91711, -3.40217, 2.63917, 1.69681, 3.40217, -2.63917, -1.69681, 0.500399, 4.02992, 2.0358),
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0)
 }
 point_count = 7
 
 [sub_resource type="Curve" id="53"]
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -3.0, 0.0, 0, 0]
+bake_resolution = 67
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -2.094, 0.0, 0, 0]
 point_count = 2
 
 [sub_resource type="CurveTexture" id="54"]
+texture_mode = 1
 curve = SubResource("53")
 
 [sub_resource type="ShaderMaterial" id="33"]
 render_priority = 0
 shader = ExtResource("8_c1yqp")
-shader_parameter/line_width = 0.045
-shader_parameter/glow_width = 0.238
+shader_parameter/line_width = 0.095
+shader_parameter/glow_width = 1.09
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
 shader_parameter/color = Color(0, 0.4, 1, 1)
-shader_parameter/curve = 0.112
+shader_parameter/glow_curve = 0.05
 shader_parameter/width_curve = SubResource("54")
 
 [sub_resource type="Curve3D" id="12"]
-bake_interval = 0.09
+bake_interval = 0.13
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.0133251, 0.052581, -0.315982, -0.000402212, -0.0114647, 0.125075, 0.000402212, 0.0114647, -0.125075, -0.0649302, 0.0867756, -0.676741, 0.0406693, -0.314836, 0.00211489, -0.0406693, 0.314836, -0.00211489, -0.0292743, 0.402122, -0.924479, 0, 0, 0, 0, 0, 0, 0.253769, 1.67101, -0.867928),
 "tilts": PackedFloat32Array(0, 0, 0, 0)
@@ -161,9 +223,9 @@ shader_parameter/line_width = 0.03
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
 shader_parameter/uv_matches_width = true
+shader_parameter/tex_scale = Vector2(1, 1)
 shader_parameter/tex_stretch = true
-shader_parameter/tex_scale = Vector2(0.049, 0.075)
-shader_parameter/color = Color(0, 0, 0, 1)
+shader_parameter/color = Color(0.0627451, 0.0627451, 0.0627451, 1)
 shader_parameter/metallic = 0.0
 shader_parameter/specular = 0.5
 shader_parameter/roughness = 0.41
@@ -393,7 +455,6 @@ shader_parameter/specular = 0.5
 shader_parameter/roughness = 0.5
 
 [sub_resource type="Curve3D" id="42"]
-bake_interval = 0.01
 _data = {
 "points": PackedVector3Array(-0.376543, 0.347183, -0.131945, 0.376543, -0.347183, 0.131945, -1.08351, 0.776258, -1.53599, -0.634989, -0.754262, -0.378784, 0.634989, 0.754262, 0.378784, 0.437512, 0.882522, 0.619004),
 "tilts": PackedFloat32Array(0, 0)
@@ -414,33 +475,10 @@ shader_parameter/roughness = 0.25
 shader_parameter/metallic = 1.0
 shader_parameter/color = Color(0.1, 0.1, 0.1, 1)
 
-[sub_resource type="Curve3D" id="55"]
-bake_interval = 0.01
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -0.144465, 0.64283, -0.798111, 0, 0, 0, 0.030962, -1.36768, 1.40599, -0.182767, 1.68482, -0.800977),
-"tilts": PackedFloat32Array(0, 0)
-}
-point_count = 2
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_t44jp"]
-render_priority = 0
-shader = ExtResource("4_12q1m")
-shader_parameter/line_width = 0.08
-shader_parameter/tangent_facing = false
-shader_parameter/rounded = true
-shader_parameter/uv_matches_width = true
-shader_parameter/tex_stretch = true
-shader_parameter/tex_scale = Vector2(1, 1)
-shader_parameter/color = Color(1, 1, 1, 1)
-shader_parameter/metallic = 1.0
-shader_parameter/specular = 0.5
-shader_parameter/roughness = 0.15
-shader_parameter/tube_normal = true
-
 [node name="Node3D" type="Node3D"]
 
 [node name="wormspinner" type="Node3D" parent="."]
-transform = Transform3D(0.881968, 0, 0.47128, 0, 0.999999, 0, -0.471277, 0, 0.881975, 0.301393, 0.016, 3.531)
+transform = Transform3D(-0.839824, 0, 0.542834, 0, 0.999999, 0, -0.54283, 0, -0.839831, -0.146766, 0.016, 3.531)
 script = SubResource("1")
 mul = 1.59
 
@@ -448,7 +486,7 @@ mul = 1.59
 transform = Transform3D(1.47814e-08, 0.338162, -0.941088, 1, -4.37114e-08, -4.41775e-14, -4.11363e-08, -0.941088, -0.338162, 0.636846, 0.0686262, 0.206937)
 script = ExtResource("4")
 max_points = 150
-material = SubResource("31")
+material = SubResource("11")
 
 [node name="MeshInstance2" type="MeshInstance3D" parent="wormspinner/worm"]
 transform = Transform3D(0.05, 4.44089e-16, -1.11022e-16, 0, 0.05, 0, -2.35922e-16, -1.39698e-09, 0.05, 0.0469999, 0, 0.033)
@@ -462,30 +500,71 @@ mesh = SubResource("36")
 transform = Transform3D(-0.422618, 0, 0.906308, 0, 1, 0, -0.906308, 0, -0.422618, 1.0615, 0.0552319, 3.14501)
 curve = SubResource("6")
 script = ExtResource("3")
+curve_mode = 1
 material = SubResource("7")
 
 [node name="wireframe" type="Path3D" parent="."]
 transform = Transform3D(0.991497, 0, 0.130128, 0, 1, 0, -0.130128, 0, 0.991497, -0.815953, 0.041678, 3.27186)
 curve = SubResource("8")
 script = ExtResource("3")
+iter_add_last_point = false
 material = SubResource("9")
 
 [node name="rope" type="Path3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964948, 0.2, -0.277496)
 curve = SubResource("10")
 script = ExtResource("3")
-material = SubResource("11")
+curve_mode = 1
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_qq25h")
 
-[node name="rope2" type="Path3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.100197, 0.297392, -0.94215)
+[node name="rope3" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964948, 0.2, 0.123746)
 curve = SubResource("10")
 script = ExtResource("3")
+curve_mode = 1
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_eq0cb")
+
+[node name="rope2" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.151, -0.721456)
+curve = SubResource("10")
+script = ExtResource("3")
+curve_mode = 1
+iter_add_last_point = false
+uv_size = 1.012
 material = SubResource("57")
+
+[node name="rope4" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.151, -1.22146)
+curve = SubResource("10")
+script = ExtResource("3")
+curve_mode = 1
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_g5nd2")
+
+[node name="rope5" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.151, -1.62146)
+curve = SubResource("10")
+script = ExtResource("3")
+curve_mode = 1
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_52kpf")
+
+[node name="rope6" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.151, -2.02146)
+curve = SubResource("10")
+script = ExtResource("3")
+curve_mode = 1
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_be6ii")
 
 [node name="glow" type="Path3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.05833, 0.672881, 0.492809)
 curve = SubResource("32")
 script = ExtResource("3")
+curve_mode = 1
+iter_min_dist = 0.236
 material = SubResource("33")
 
 [node name="Node3D" type="Node3D" parent="."]
@@ -528,17 +607,14 @@ script = ExtResource("3")
 material = SubResource("13")
 
 [node name="2" type="OmniLight3D" parent="Node3D"]
-transform = Transform3D(-0.043553, 0.282732, 1.97944, -0.598798, 1.88719, -0.282732, -1.90776, -0.598798, 0.0435533, 0.863134, 1.63878, -1.11642)
+transform = Transform3D(-0.0435529, 0.282734, 1.97944, -0.598798, 1.88719, -0.282734, -1.90776, -0.598798, 0.0435537, 1.14294, 0.783725, -0.465719)
+visible = false
 light_color = Color(1, 0.94, 1, 1)
-light_size = 0.1
+light_size = 0.195
 shadow_enabled = true
-shadow_bias = 0.005
+shadow_bias = 0.035
 omni_range = 20.0
 omni_attenuation = 2.0
-
-[node name="MeshInstance2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, -0.389846, 2.016, -0.151969)
-mesh = SubResource("19")
 
 [node name="MeshInstance3" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -0.104476, 0.491065, 5.4924)
@@ -559,6 +635,16 @@ emission_shape = 2
 emission_sphere_radius = 1.0
 spread = 180.0
 gravity = Vector3(0, 0, 0)
+
+[node name="3" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.667832, 0.744312, 0, -0.744312, -0.667832, 1.62286, 5.84881, -3.08045)
+light_color = Color(1, 0.94, 1, 1)
+light_angular_distance = 2.0
+shadow_enabled = true
+shadow_blur = 2.239
+directional_shadow_fade_start = 1.0
+directional_shadow_max_distance = 10.0
+directional_shadow_pancake_size = 7.4
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(-0.932721, 0, 0.360599, 0, 1, 0, -0.360599, 0, -0.932721, 0.808431, 0.807191, -0.232107)
@@ -587,14 +673,13 @@ material = SubResource("41")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.53022, 1.1862, 3.69593)
 curve = SubResource("42")
 script = ExtResource("3")
+curve_mode = 1
+iter_add_last_point = false
+uv_size = 0.1
 material = SubResource("52")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.153023, 1.20027, 3.35399)
-visible = false
-
-[node name="OmniLight3D2" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.854231, 1.48709, -0.78489)
 visible = false
 
 [node name="OmniLight2" type="OmniLight3D" parent="."]
@@ -605,11 +690,6 @@ visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.101659, 0.201528, 1.76163)
 visible = false
 shadow_enabled = true
-
-[node name="LinePath3D2" type="Path3D" parent="."]
-curve = SubResource("55")
-script = ExtResource("3")
-material = SubResource("ShaderMaterial_t44jp")
 
 [node name="ReflectionProbe" type="ReflectionProbe" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.22816, 1.89413)

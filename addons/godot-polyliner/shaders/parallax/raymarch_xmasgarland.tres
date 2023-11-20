@@ -26,11 +26,9 @@ void vertex(){
 	float is_end = 0.0;
 	quick_line(line_width,false)
 	
-	BINORMAL = cross(TANGENT,NORMAL);
-	
 	TBN = mat3(
-		TANGENT,
 		BINORMAL,
+		TANGENT,
 		NORMAL
 	);
 	
@@ -40,7 +38,7 @@ void vertex(){
 	TBN *= rot;
 	
 	ray_dir = VERTEX * TBN;
-	ray_origin = vec3(UV,0.2);
+	ray_origin = vec3(UV,0.0);
 	float asp = stretch / line_width;
 	asp *= UV2.x;
 	
@@ -138,10 +136,10 @@ vec3 getNormal( in vec3 p )
 }
 
 float raymarch(vec3 ro, vec3 rd){
-	float total_dist = 0.0;
+	float total_dist = -0.999;
 	
-	for(int i=0;i<200;i++){
-		if (total_dist > 100.0) { break; }
+	for(int i=0;i<256;i++){
+		if (total_dist > 0.0) { break; }
 		
 		vec3 ray = ro + (rd * total_dist);
 		
@@ -151,7 +149,7 @@ float raymarch(vec3 ro, vec3 rd){
 			return total_dist;
 		}
 		
-		total_dist += dist*0.5;
+		total_dist += dist*0.1;
 	}
 	
 	return -1.0;
@@ -186,7 +184,7 @@ void fragment(){
 	
 	float colhash = scene(hit_pos).y;
 	
-	if (hit_info < 0.0) { discard; }
+	if (hit_info == -1.0) { discard; }
 	
 	vec3 hit_normal = TBN * getNormal(hit_pos);
 	

@@ -1,12 +1,12 @@
 shader_type spatial;
 render_mode skip_vertex_transform,cull_disabled;
 render_mode depth_draw_opaque;
-//render_mode unshaded;
+
 #include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
 const float RAY_MISS = 1e20;
 
-uniform float twirl_aspect = 8.0;
+uniform float twirl_aspect = 0.5;
 uniform float extra_angle = 0.0;
 
 varying vec3 ray_origin;
@@ -22,8 +22,8 @@ void vertex(){
 	quick_line(line_width,false)
 	
 	TBN = mat3(
-		TANGENT,
 		BINORMAL,
+		TANGENT,
 		NORMAL
 	);
 	
