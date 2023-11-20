@@ -29,7 +29,7 @@ float line_processe(float width, inout vec3 vertex, vec3 dir_to_cam, vec2 uv,
 #include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
 uniform vec4 color : source_color = vec4(vec3(1.0,1.0,0.5),1.0);
-uniform float aspect = 4;
+uniform float aspect = 0.5;
 uniform bool stretch = false;
 
 varying mat3 TBN;

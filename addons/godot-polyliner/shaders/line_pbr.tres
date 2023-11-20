@@ -12,21 +12,20 @@ uniform float line_width = 0.03;
 uniform sampler2D width_curve : source_color;
 uniform bool tangent_facing = false;
 uniform bool rounded = false;
+uniform bool tube_normal = true;
+
 uniform bool uv_matches_width = true;
 uniform vec2 tex_scale = vec2(1.0,1.0);
 
 varying float is_end;
 void vertex(){
 	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
-	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	BINORMAL = mat3(MODELVIEW_MATRIX) * BINORMAL;
 	
 	quick_line(line_width, rounded);
-	
-	
-//	BINORMAL = cross(TANGENT,NORMAL);
 	
 	if (uv_matches_width) { UV.x /= line_width; }
 	
@@ -72,7 +71,6 @@ uniform float metallic  : hint_range(0.0,1.0,0.005) = 0.0;
 uniform float specular  : hint_range(0.0,1.0,0.005) = 0.5;
 uniform float roughness : hint_range(0.0,1.0,0.005) = 0.5;
 
-uniform bool tube_normal = true;
 void fragment() {
 	if (!FRONT_FACING) { NORMAL = -NORMAL; }
 	

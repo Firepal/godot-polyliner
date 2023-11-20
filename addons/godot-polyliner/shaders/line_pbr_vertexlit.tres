@@ -21,8 +21,6 @@ void vertex(){
 	
 	quick_line(line_width,rounded);
 	
-	BINORMAL = cross(TANGENT,NORMAL);
-	
 	float line_length = UV2.x;
 	UV.x = 1.0-UV.x;
 	UV2 = UV;
@@ -43,8 +41,21 @@ uniform vec4 color : source_color = vec4(vec3(1.0),1.0);
 uniform float metallic  : hint_range(0.0,1.0,0.005) = 0.0;
 uniform float specular  : hint_range(0.0,1.0,0.005) = 0.5;
 uniform float roughness : hint_range(0.0,1.0,0.005) = 0.5;
+
+uniform bool tube_normal = true;
 void fragment() {
 	if (!FRONT_FACING) { NORMAL = -NORMAL; }
+	
+	if (tube_normal && !tangent_facing) { 
+		NORMAL_MAP = getLineTubeNormal(UV,is_end,rounded);
+	}
+	
+	if (rounded && abs(is_end) > 0.0001) {
+		// pure heuristics
+		float softner = magic_aa(6000.0,VERTEX,VIEWPORT_SIZE);
+		softner *= (1.0/line_width) * (min(abs(is_end)*2.0,1.0));
+		ALPHA *= smoothstep(1.0,1.0+softner,getDistToLineCenter(UV,is_end));
+	}
 	
 	vec2 uv_alb = UV2;
 	if (tex_stretch) {
@@ -59,4 +70,5 @@ void fragment() {
 	SPECULAR = specular;
 	ROUGHNESS = roughness;
 	METALLIC = metallic;
+	ALPHA_SCISSOR_THRESHOLD = 0.001; // comment out for alpha blending
 }"

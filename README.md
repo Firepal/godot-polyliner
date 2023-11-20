@@ -1,29 +1,33 @@
-# Polyliner early development
-<img src="icon.png"></img><br>
-***This plugin is currently being developed in Godot 3.4 and is not guaranteed to function in 3.3***    
+# Polyliner
+<img src="icon.png"></img><br>  
 
-Adds 3D thick line rendering capabilities.
+Adds 3D line/ribbon mesh capabilities.<br>
+Supports Godot 4.1.
 
-# Usage Instructions
+# Usage
 
-1.  Create a LinePath3D node
-
-2.  Setup the curve like you would with the Godot `Path` node. 
+The included `LinePath3D` node uses the `Path3D` node as a source of line segments;
+you can use it to easily make a smooth line.
 <details>
-
-Select the `LinePath3D`, click the yellow-y "Add Points" icon at the top of the viewport and click around to create points.
-
-To add handles to a point, click the greyish "Select Points" icon at the top of the viewport, hold Shift and click-and-drag on a point to add curve handles to it.
-
+<summary>How to make a path?</summary>
+Select the `LinePath3D`, then hold Ctrl (Cmd if on a Mac) and click to create points.<br>
+To add handles to a point, hold Shift and click-and-drag on a point to add curve handles to it.
 </details><br>
 
-3. ???
+The included `Line3D` node more or less behaves like the stock `Line2D`.<br>
+Push your line points to it and a line mesh will be automatically generated.
 
-4. Profit!
+The included `Trail3D` node forms a trail. This node will form line segments from
+its previous positions. It works in global space, so it works as a child of another `Node3D`.
 
-You can drag-and-drop any of the shaders from `addons/godot-polyliner/shaders/` into the "Shader" property slot. Remember to click "Make Unique" on it so you don't overwrite the original plugin data when you edit them.
+These nodes render lines in the same manner, and all support the same shaders.
 
+Within `addons/godot-polyliner/shaders/` is a bunch of ready-made line shaders,
+from a cylinder facsimile to a full raymarched metal chain or swirling rope,
+and from a blooming light tube to a swooshing effect.
 
-# To-Do
-- Implement curve system with a fully custom "tangent"
-- SpatialMaterial shader injection
+(don't forget to make your shaders unique before editing them!)
+
+4. ???
+
+5. Profit!

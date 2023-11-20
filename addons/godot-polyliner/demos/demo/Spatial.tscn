@@ -61,6 +61,7 @@ shader = ExtResource("4_12q1m")
 shader_parameter/line_width = 0.035
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
+shader_parameter/tube_normal = true
 shader_parameter/uv_matches_width = true
 shader_parameter/tex_scale = Vector2(1, 1)
 shader_parameter/tex_stretch = true
@@ -68,7 +69,6 @@ shader_parameter/color = Color(0.164706, 0.164706, 0.164706, 1)
 shader_parameter/metallic = 0.0
 shader_parameter/specular = 0.5
 shader_parameter/roughness = 0.5
-shader_parameter/tube_normal = true
 
 [sub_resource type="Curve3D" id="8"]
 bake_interval = 0.01
@@ -222,6 +222,7 @@ shader = ExtResource("4_12q1m")
 shader_parameter/line_width = 0.03
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
+shader_parameter/tube_normal = true
 shader_parameter/uv_matches_width = true
 shader_parameter/tex_scale = Vector2(1, 1)
 shader_parameter/tex_stretch = true
@@ -229,7 +230,6 @@ shader_parameter/color = Color(0.0627451, 0.0627451, 0.0627451, 1)
 shader_parameter/metallic = 0.0
 shader_parameter/specular = 0.5
 shader_parameter/roughness = 0.41
-shader_parameter/tube_normal = true
 shader_parameter/width_curve = SubResource("CurveTexture_ovms4")
 
 [sub_resource type="Curve3D" id="14"]
@@ -478,7 +478,7 @@ shader_parameter/color = Color(0.1, 0.1, 0.1, 1)
 [node name="Node3D" type="Node3D"]
 
 [node name="wormspinner" type="Node3D" parent="."]
-transform = Transform3D(-0.839824, 0, 0.542834, 0, 0.999999, 0, -0.54283, 0, -0.839831, -0.146766, 0.016, 3.531)
+transform = Transform3D(0.916642, 0, 0.399673, 0, 0.999999, 0, -0.39967, 0, 0.916649, -0.343072, 0.016, 3.531)
 script = SubResource("1")
 mul = 1.59
 
