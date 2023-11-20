@@ -27,7 +27,3 @@ from a cylinder facsimile to a full raymarched metal chain or swirling rope,
 and from a blooming light tube to a swooshing effect.
 
 (don't forget to make your shaders unique before editing them!)
-
-4. ???
-
-5. Profit!
