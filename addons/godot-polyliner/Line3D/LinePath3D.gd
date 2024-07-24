@@ -137,6 +137,9 @@ func _get_iterative_points():
 	return points
 
 func _draw():
+	if _mesh_instance == null: 
+		if OS.is_debug_build(): print_debug("Tried to draw LinePath3D but mesh instance wasn't init")
+		return
 	var stages = 8
 	if curve.point_count > 4: stages = 5
 	var points
