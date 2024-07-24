@@ -19,7 +19,7 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	quick_line(line_width,rounded);
+	quick_line(line_width,rounded,tangent_facing);
 	
 	float line_length = UV2.x;
 	UV.x = 1.0-UV.x;
@@ -52,8 +52,8 @@ void fragment() {
 	
 	if (rounded && abs(is_end) > 0.0001) {
 		// pure heuristics
-		float softner = magic_aa(6000.0,VERTEX,VIEWPORT_SIZE);
-		softner *= (1.0/line_width) * (min(abs(is_end)*2.0,1.0));
+		float softner = -magic_aa(VERTEX,VIEWPORT_SIZE)/line_width*3.0;
+		softner *= (min(abs(is_end)*2.0,1.0));
 		ALPHA *= smoothstep(1.0,1.0+softner,getDistToLineCenter(UV,is_end));
 	}
 	

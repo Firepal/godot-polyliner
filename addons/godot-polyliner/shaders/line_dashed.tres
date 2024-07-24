@@ -1,0 +1,49 @@
+[gd_resource type="Shader" format=3 uid="uid://durlvj8162pxu"]
+
+[resource]
+code = "shader_type spatial;
+render_mode skip_vertex_transform, cull_disabled;
+render_mode unshaded;
+//render_mode blend_add;
+
+#include \"res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc\"
+
+float sdRoundedBox( in vec2 p, in vec2 b, in vec4 r ) {
+	r.xy = (p.x>0.0)?r.xy : r.zw;
+	r.x  = (p.y>0.0)?r.x  : r.y;
+	vec2 q = abs(p)-b+r.x;
+	return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
+}
+
+uniform float line_width = 0.01;
+uniform bool rounded = true;
+
+varying float is_end;
+void vertex() {
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	
+	quick_line(line_width,rounded,false);
+}
+
+uniform vec4 color : source_color = vec4(vec3(1.0),1.0);
+uniform float antline_percent : hint_range(0.0,1.0,0.005) = 0.5;
+uniform float antline_scroll : hint_range(0.0,1.0,0.005) = 1.0;
+uniform float antline_scale = 0.5;
+
+
+void fragment(){
+	float rounder = 1.0-getDistSquaredToLineCenter(UV,is_end);
+	vec2 ant_coord = UV;
+	ant_coord.x = ((ant_coord.x/line_width)*antline_scale) + antline_scroll;
+	ant_coord.x = (ant_coord.x * antline_scale) + (TIME*antline_scroll*2.0);
+	
+	float s = antline_scale*0.01;
+	float ap = antline_percent*1.01;
+	float ants = smoothstep(ap-s,ap,abs(fract(ant_coord.x)*2.0-1.0));
+	
+	ALBEDO = color.rgb;
+	ALPHA = ants*smoothstep(0.0,0.1,rounder)*color.a;
+//	ALPHA_SCISSOR_THRESHOLD = 1e-10;
+}"

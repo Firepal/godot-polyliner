@@ -1,13 +1,13 @@
 #define PLYLINE_INPUTS VERTEX,UV,UV2,TANGENT,BINORMAL,NORMAL
-#define quick_line(width,rounded) \
-	LineData ld = pak_linedata(PLYLINE_INPUTS,width,rounded); \
+#define quick_line(width,rounded,tangent_facing) \
+	LineData ld = pak_linedata(PLYLINE_INPUTS,width,rounded,tangent_facing); \
 	is_end = line_process(ld); \
 	unpak_linedata(PLYLINE_INPUTS,ld);
 
 struct LineData {
 	float width;
 	float total_length;
-	vec3 vertex, dir_to_cam;
+	vec3 vertex;
 	vec2 uv;
 	mat3 tbn;
 	
@@ -18,11 +18,11 @@ struct LineData {
 #define __LD_MESH_ARGS inout vec3 vertex, inout vec2 uv, inout vec2 uv2, \
 	inout vec3 tangent, inout vec3 binormal, inout vec3 normal
 
-LineData pak_linedata(__LD_MESH_ARGS, float width, bool rounded){
+LineData pak_linedata(__LD_MESH_ARGS, float width,
+			bool rounded, bool tangent_facing){
 	LineData ld;
 	ld.width = width;
 	ld.vertex = vertex;
-	ld.dir_to_cam = normalize(vertex);
 	ld.uv = uv;
 	ld.total_length = uv2.x;
 	ld.tbn = mat3(
@@ -30,7 +30,7 @@ LineData pak_linedata(__LD_MESH_ARGS, float width, bool rounded){
 		binormal,
 		normal
 	);
-	ld.tangent_facing = false;
+	ld.tangent_facing = tangent_facing;
 	ld.rounded = rounded;
 	return ld;
 }
@@ -45,29 +45,25 @@ void unpak_linedata(__LD_MESH_ARGS, LineData ld){
 
 float line_process(inout LineData ld){
 	vec3 dir_to_next_point = ld.tbn[2];
-	vec3 perp = normalize(cross(ld.dir_to_cam,dir_to_next_point));
+	vec3 dir_to_cam = normalize(ld.vertex);
+	vec3 perp = normalize(cross(dir_to_cam,dir_to_next_point));
+	
+	if (ld.tangent_facing) {
+		perp = ld.tbn[0];
+	}
+	
+	ld.tbn[0] = perp;
+	ld.tbn[2] = cross(perp,dir_to_next_point);
+	ld.tbn[1] = cross(ld.tbn[0],ld.tbn[2]);
 	
 	float is_end = 0.5-ld.uv.x;
 	is_end = float(abs(is_end) > 0.5) * -sign(is_end);
 	
-	vec3 rounder = vec3(0.0); 
-	if (ld.rounded) { 
-		rounder = is_end * normalize(cross(perp,ld.dir_to_cam));
-	}
+	vec3 rounder = cross(perp,dir_to_cam) * is_end * float(ld.rounded);
 	
-	float side = sign(float(ld.uv.y > 0.5)-0.5);
+	float side = sign(ld.uv.y-0.5);
 	ld.vertex += ((perp*side)-rounder) * ld.width;
 	
-//	tangent = perp;
-//	normal = cross(perp,dir_to_next_point);
-	ld.tbn[0] = normalize(perp);
-	ld.tbn[2] = normalize(cross(perp,dir_to_next_point));
-	ld.tbn[1] = (cross(ld.tbn[0],ld.tbn[2]));
-	
-	// fixes raymarching but breaks lighting
-//	ld.tbn[1] = perp;
-//	ld.tbn[2] = normalize(cross(perp,dir_to_next_point));
-//	ld.tbn[0] = normalize(cross(ld.tbn[1],ld.tbn[2]));
 	
 	return is_end;
 }
@@ -92,10 +88,10 @@ vec3 getLineTubeNormal(vec2 uv, float is_end, bool rounded) {
 
 // MISC
 
-
-float magic_aa(float coef, vec3 vertex, vec2 screen_size) {
-		float sofdamp = coef/dot(screen_size,screen_size);
-		return vertex.z * sofdamp;
+// Cheap alternative to dFd* functions.
+float magic_aa(vec3 vertex, vec2 screen_size) {
+		float sofdamp = 1.0/sqrt(dot(screen_size,screen_size));
+		return -vertex.z * sofdamp;
 }
 
 vec3 hash31(float p) {

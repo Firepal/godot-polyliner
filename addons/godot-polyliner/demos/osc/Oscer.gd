@@ -7,11 +7,12 @@ var capture : AudioEffectCapture
 var linegen = LineGen3D.new()
 func _ready():
 	capture = AudioServer.get_bus_effect(0,0)
+	assert(capture != null)
 	linegen.render_mode = Mesh.PRIMITIVE_TRIANGLES
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if (false) else DisplayServer.VSYNC_DISABLED)
 
 func _process(delta):
-	if not Engine.editor_hint: _cap_do(delta)
+	if not Engine.is_editor_hint(): _cap_do(delta)
 
 const MAX_SAMPLES = 1000
 func _cap_do(delta):

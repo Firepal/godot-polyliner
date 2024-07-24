@@ -1,0 +1,79 @@
+[gd_resource type="Shader" format=3 uid="uid://cfqbltjpc442b"]
+
+[resource]
+code = "shader_type spatial;
+render_mode skip_vertex_transform, cull_disabled;
+render_mode unshaded;
+//render_mode blend_add;
+
+#include \"res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc\"
+
+float random31(vec3 p3) {
+	p3  = fract(p3 * .1031);
+	p3 += dot(p3, p3.zyx + 31.32);
+	return fract((p3.x + p3.y) * p3.z);
+}
+
+float noise3d( vec3 uvw ){
+	vec3 u = fract(uvw);
+	vec3 i = floor(uvw);
+	
+	float a = random31( i );
+	float b = random31( i+vec3(1.0,0.0,0.0) );
+	float c = random31( i+vec3(0.0,1.0,0.0) );
+	float d = random31( i+vec3(1.0,1.0,0.0) );
+	float e = random31( i+vec3(0.0,0.0,1.0) );
+	float f = random31( i+vec3(1.0,0.0,1.0) );
+	float g = random31( i+vec3(0.0,1.0,1.0) );
+	float h = random31( i+vec3(1.0,1.0,1.0) );
+	
+	u = smoothstep(0.0,1.0,u); // uncomment for linear
+	
+	return mix(mix(mix( a, b, u.x),
+                       mix( c, d, u.x), u.y),
+                   mix(mix( e, f, u.x),
+                       mix( g, h, u.x), u.y), u.z);
+}
+
+float fBm(vec3 x) {
+	float v = 0.0;
+	float a = 0.5;
+	vec3 shift = vec3(0.0);
+	const int OCTAVES = 6;
+	for (int i = 0; i < OCTAVES; ++i) {
+		v += a * noise3d(x);
+		x = x * 2.0 + shift;
+		a *= 0.5;
+	}
+	return v;
+}
+
+uniform float line_width = 0.008;
+
+varying float is_end;
+varying vec3 world_pos;
+void vertex() {
+	world_pos = (MODEL_MATRIX * vec4(VERTEX,1.0)).xyz;
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	
+	quick_line(line_width,true,false);
+}
+
+uniform float world_size = 8.0;
+uniform float exposure = 4.0;
+uniform float white_glow : hint_range(0.0,2.0,0.005) = 0.0;
+uniform vec4 color : source_color = vec4(vec3(1.0,1.0,0.0),1.0);
+
+void fragment(){
+	float laser_noise = fBm((world_pos/world_size/line_width) - vec3(TIME));
+	laser_noise = pow(laser_noise,4.0);
+	vec3 color_bright = mix(color.rgb,vec3(1.0),laser_noise*white_glow);
+	ALBEDO = color_bright*exposure;
+	
+	float body = smoothstep(1.0,0.0,getDistToLineCenter(UV,is_end));
+	
+	float aa = line_width/magic_aa(VERTEX,VIEWPORT_SIZE)/10.0;
+	ALPHA = body*laser_noise*min(1.0,aa);
+}"

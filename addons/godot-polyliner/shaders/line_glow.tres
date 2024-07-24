@@ -28,7 +28,7 @@ void vertex(){
 	float lww = line_width_curved+glow_width;
 	hider = smoothstep(0.995,0.99,abs(dot(NORMAL,normalize(VERTEX))));
 	
-	quick_line(lww,rounded);
+	quick_line(lww,rounded,false);
 	
 	lw = max(line_width_curved,0.0001)/max(lww,0.0001);
 	
@@ -42,8 +42,9 @@ void fragment() {
 	float roundededge = 1.0-pow(smoothstep(lw,1.0,dist),glow_curve);
 	
 	
-	float softner = magic_aa(8e3/(line_width+glow_width),VERTEX,VIEWPORT_SIZE);
-	roundededge = max(roundededge,smoothstep(lw-softner,lw,dist));
+	float softner = magic_aa(VERTEX,VIEWPORT_SIZE)/(glow_width+line_width) * 5.0;
+	roundededge = max(roundededge,smoothstep(lw+softner,lw,dist));
+//	roundededge *= clamp(1e-2/s2,0.0,1.0);
 	
 	ALBEDO = mix(color.rgb,vec3(1.0),roundededge);
 	ALPHA = roundededge;

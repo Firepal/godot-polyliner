@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3 uid="uid://bk6p2ir23a777"]
+[gd_scene load_steps=61 format=3 uid="uid://bk6p2ir23a777"]
 
 [ext_resource type="Environment" uid="uid://dd5bpvybxmy6u" path="res://addons/godot-polyliner/demos/default_env.tres" id="1"]
 [ext_resource type="Script" path="res://addons/godot-polyliner/Line3D/LinePath3D.gd" id="3"]
@@ -7,8 +7,11 @@
 [ext_resource type="Shader" uid="uid://bpkesrnyx2hr5" path="res://addons/godot-polyliner/shaders/line_fade.tres" id="5_kk3ms"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_rope.gdshader" id="6"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_ticker.gdshader" id="6_5q0jx"]
+[ext_resource type="Shader" uid="uid://durlvj8162pxu" path="res://addons/godot-polyliner/shaders/line_dashed.tres" id="7_reh8s"]
 [ext_resource type="Shader" uid="uid://c2c7sknvw28nm" path="res://addons/godot-polyliner/shaders/line_glow.tres" id="8_c1yqp"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmaslightbulbs.gdshader" id="8_fk2di"]
+[ext_resource type="Shader" uid="uid://mddj3yvtsb0w" path="res://addons/godot-polyliner/shaders/line_arrow.tres" id="8_icgv3"]
+[ext_resource type="Shader" uid="uid://cfqbltjpc442b" path="res://addons/godot-polyliner/shaders/line_foglaser.tres" id="9_3gsv1"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_driverpassenger.gdshader" id="9_rawnu"]
 [ext_resource type="Shader" uid="uid://dno2b0s1fv77i" path="res://addons/godot-polyliner/shaders/parallax/raymarch_xmasgarland.tres" id="10_gpltd"]
 [ext_resource type="Shader" path="res://addons/godot-polyliner/shaders/parallax/raymarch_chain.gdshader" id="11"]
@@ -48,7 +51,7 @@ roughness = 0.31
 material = SubResource("35")
 
 [sub_resource type="Curve3D" id="6"]
-bake_interval = 0.26
+bake_interval = 0.01
 _data = {
 "points": PackedVector3Array(-0.681473, 0.501452, 0.0499668, -0.0453298, -0.808289, -0.422336, -0.287503, 1.98422, 3.27149, -0.0263753, -0.319308, 0.277562, 0, 0, 0, -0.702265, 1.97101, 1.42616, -0.404719, -0.395793, 0.304124, 0.250978, -0.285766, -0.20488, -0.182462, 1.93592, 0.452959, -0.0293496, 0.00787398, 0.0273083, 0.0364196, -0.00977075, -0.0338867, 0.778996, 1.91667, -0.265536, -0.465314, 0.0219152, 0.559101, 0.465314, -0.0219152, -0.559101, 1.30247, 0.0139077, -0.142204, -0.690027, -0.0455682, 0.313123, 0.690027, 0.0455682, -0.313123, 2.45674, -0.0354496, -0.813197),
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0)
@@ -58,7 +61,7 @@ point_count = 6
 [sub_resource type="ShaderMaterial" id="7"]
 render_priority = 0
 shader = ExtResource("4_12q1m")
-shader_parameter/line_width = 0.035
+shader_parameter/line_width = 0.05
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
 shader_parameter/tube_normal = true
@@ -78,30 +81,58 @@ _data = {
 }
 point_count = 2
 
-[sub_resource type="Curve" id="49"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 0), -6.86684, -2.3, 0, 0]
-point_count = 2
-
-[sub_resource type="CurveTexture" id="50"]
-curve = SubResource("49")
-
 [sub_resource type="ShaderMaterial" id="9"]
 render_priority = 0
 shader = ExtResource("5_kk3ms")
-shader_parameter/line_width = 0.155
-shader_parameter/tangent_facing = false
-shader_parameter/tangent_offset = -0.16
-shader_parameter/color = Color(1, 0, 0, 1)
+shader_parameter/line_width = 0.4
+shader_parameter/tangent_facing = true
+shader_parameter/tangent_offset = 0.5
+shader_parameter/color = Color(1, 1, 1, 1)
 shader_parameter/alpha_curve = 0.5
-shader_parameter/width_curve = SubResource("50")
 
 [sub_resource type="Curve3D" id="10"]
-bake_interval = 0.01
+bake_interval = 0.1
 _data = {
 "points": PackedVector3Array(-0.314905, 1.41452, 0.0695871, 0.314905, -1.41452, -0.0695871, -0.2527, 1.27615, -0.198765, 0, 0, 0, 0, 0, 0, 3.777, 1.04701, -0.188479),
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eq0cb"]
+render_priority = 0
+shader = ExtResource("6_5q0jx")
+shader_parameter/line_width = 0.05
+shader_parameter/aspect = 1.0
+shader_parameter/stretch = false
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5byre"]
+render_priority = 0
+shader = ExtResource("7_reh8s")
+shader_parameter/line_width = 0.01
+shader_parameter/rounded = true
+shader_parameter/color = Color(1, 1, 0.513726, 1)
+shader_parameter/antline_percent = 0.5
+shader_parameter/antline_scroll = 1.0
+shader_parameter/antline_scale = 0.5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_he72r"]
+render_priority = 0
+shader = ExtResource("8_icgv3")
+shader_parameter/line_width = 0.1
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/stem_size = 0.3
+shader_parameter/peak_aspect = 0.1
+shader_parameter/double_sided = true
+shader_parameter/flip_direction = false
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tc703"]
+render_priority = 0
+shader = ExtResource("9_3gsv1")
+shader_parameter/line_width = 0.01
+shader_parameter/world_size = 8.0
+shader_parameter/exposure = 8.87
+shader_parameter/white_glow = 0.37
+shader_parameter/color = Color(1, 0, 0, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qq25h"]
 render_priority = 0
@@ -111,13 +142,6 @@ shader_parameter/color = Color(1, 1, 0.501961, 1)
 shader_parameter/aspect = 4.0
 shader_parameter/stretch = true
 shader_parameter/ao_samples = 4.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_eq0cb"]
-render_priority = 0
-shader = ExtResource("6_5q0jx")
-shader_parameter/line_width = 0.05
-shader_parameter/aspect = 1.0
-shader_parameter/stretch = false
 
 [sub_resource type="ShaderMaterial" id="57"]
 render_priority = 0
@@ -172,38 +196,195 @@ shader_parameter/roughness = 1.0
 shader_parameter/color = Color(0.1, 0.2, 0.1, 1)
 shader_parameter/g_color = Color(0.3, 0.6, 0.3, 1)
 
+[sub_resource type="Curve3D" id="Curve3D_s2qhu"]
+bake_interval = 0.01
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -0.691932, -0.210221, -0.298547, 1.74442, 0.0206528, 1.6599, -1.74442, -0.0206528, -1.6599, 0.956513, -0.197345, -2.96823, 0, 0, 0, 0, 0, 0, -2.90946, -0.202461, -2.4965),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+
+[sub_resource type="Shader" id="Shader_kmium"]
+code = "shader_type spatial;
+render_mode skip_vertex_transform;
+render_mode depth_draw_always;
+//render_mode alpha_to_coverage_and_one;
+
+#include \"res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc\"
+
+uniform float line_width = 0.03;
+uniform sampler2D width_curve : source_color;
+uniform bool tangent_facing = false;
+uniform bool rounded = false;
+uniform bool tube_normal = true;
+
+uniform bool uv_matches_width = true;
+uniform vec2 tex_scale = vec2(1.0,1.0);
+
+varying float is_end;
+void vertex(){
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	TANGENT = normalize(cross(NORMAL,rotation3dX(0.0)*vec3(0.0,1.0,0.0)));
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	
+	quick_line(line_width, rounded, tangent_facing);
+	
+	if (uv_matches_width) { UV.x /= line_width; }
+	
+	UV.x = 1.0-UV.x;
+	
+	float line_length = UV2.x;
+	UV2 = UV;
+	UV2.x *= line_length;
+	
+	// correct the texture coordinates at the rounded ends
+	// TODO: doesn't take angle of the rounded end into account at all
+	if (rounded) {
+		// the world may never know
+		// why 1.414 is the exact value which fixes the texcoords
+		const float SQ2 = sqrt(2.0);
+		float uv_correct = -is_end;
+		
+		if (uv_matches_width) { uv_correct *= line_width*SQ2; } 
+		else { uv_correct *= line_width/abs(tex_scale.x); }
+//		if (abs(is_end) > 0.001) {
+//			float i = acos(dot(TANGENT,normalize(cross(NORMAL,normalize(VERTEX)))));
+//			float xe = 1.0/(i*0.5+0.5);
+//			uv_correct *= xe*abs(tex_scale.x);
+//		}
+		UV.x += uv_correct;
+		UV2.x += uv_correct;
+	}
+	
+	// godot seems to reapply the modelview transform later
+	// we have no choice but to do the inverse transform
+	// af1d81d fixes this
+	TANGENT =  TANGENT * mat3(MODELVIEW_MATRIX);
+	BINORMAL = BINORMAL * mat3(MODELVIEW_MATRIX);
+}
+
+uniform sampler2D texture_alb : hint_default_white, source_color;
+uniform sampler2D texture_rgh : hint_default_white;
+uniform bool tex_stretch = true;
+
+uniform vec4 color : source_color = vec4(vec3(1.0),1.0);
+uniform float metallic  : hint_range(0.0,1.0,0.005) = 0.0;
+uniform float specular  : hint_range(0.0,1.0,0.005) = 0.5;
+uniform float roughness : hint_range(0.0,1.0,0.005) = 0.5;
+uniform float layerrr = 100.0;
+
+vec3 texview_arbitrary(vec2 uv, vec3 vertex, vec3 normal) {
+	vec3 viewPosition = -normalize(vertex); // Godot has this as VIEW
+	vec2 texDx = dFdx( uv );
+	vec2 texDy = dFdy( uv );
+	vec3 vSigmaX = dFdx( vertex );
+	vec3 vSigmaY = dFdy( vertex );
+	vec3 vR1 = cross( vSigmaY, normal );
+	vec3 vR2 = cross( normal, vSigmaX );
+	float fDet = dot( vSigmaX, vR1 );
+	vec2 vProjVscr = ( 1.0 / fDet ) * vec2( dot( vR1, viewPosition ), dot( vR2, viewPosition ) );
+	vec3 vProjVtex;
+	vProjVtex.xy = texDx * vProjVscr.x + texDy * vProjVscr.y;
+	vProjVtex.z = dot( normal, viewPosition );
+	return vProjVtex;
+}
+
+#define parallax_sample(uv) (smoothstep(0.5,0.0,texture(dispMap,uv).r))
+
+vec2 parallax_tex(sampler2D dispMap,vec2 uv,float depth,
+		vec3 VERT, vec3 NORM, vec3 TANG) {
+	vec3 vProjVtex = texview_arbitrary(uv,VERT,NORM);
+	
+	const float minLayers = 5.0;
+	float layers = mix(100.0,minLayers,max(dot(vec3(0.0,0.0,1.0),NORM),0.0));
+	
+	float layer_dist = 1.0/layers;
+	
+	float current_depth = 0.0;
+	
+	vec2 p = (vProjVtex.xy/vProjVtex.z)*(depth*0.05); 
+	vec2 deltaTexCoords = p * layer_dist;
+	
+	float height = parallax_sample(uv);
+	while(current_depth < height){
+		current_depth += layer_dist;
+		uv -= deltaTexCoords;
+		height = parallax_sample(uv);
+	}
+	vec2 newv = uv + deltaTexCoords;
+	float afterDepth  = height - current_depth;
+	float beforeDepth = parallax_sample(newv) - current_depth + layer_dist;
+
+	float weight = afterDepth / (afterDepth - beforeDepth);
+//	weight -= ((hash12(noiseUV))-0.5);
+	uv = newv * weight + uv * (1.0 - weight);
+	
+	return uv;
+}
+
+void fragment() {
+	
+	
+	if (!FRONT_FACING) { NORMAL = -NORMAL; }
+	
+	if (tube_normal && !tangent_facing) { 
+		NORMAL_MAP = getLineTubeNormal(UV,is_end,rounded);
+	}
+	
+	if (rounded && abs(is_end) > 0.0001) {
+		// pure heuristics
+		float softner = magic_aa(6000.0,VERTEX,VIEWPORT_SIZE);
+		softner *= (1.0/line_width) * (min(abs(is_end)*2.0,1.0));
+		ALPHA *= smoothstep(1.0,1.0+softner,getDistToLineCenter(UV,is_end));
+	}
+	
+	vec2 uv_alb = UV2;
+	if (tex_stretch) {
+		uv_alb = UV;
+	}
+	uv_alb *= tex_scale;
+	
+	uv_alb = uv_alb.yx; // more intuitive
+	uv_alb = parallax_tex(texture_alb,uv_alb,(sin(TIME)*0.5+0.5)*4.0,VERTEX,NORMAL,TANGENT);
+	
+	vec4 alb_sample = texture(texture_alb,uv_alb);
+	vec4 rgh_sample = texture(texture_rgh,uv_alb);
+	
+	ALBEDO = alb_sample.rgb * alb_sample.a * color.rgb;
+	SPECULAR = specular;
+	ROUGHNESS = roughness * rgh_sample.r;
+	METALLIC = metallic;
+	
+	ALPHA_SCISSOR_THRESHOLD = 0.001; // comment out for alpha blending
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_a854b"]
+render_priority = 0
+shader = SubResource("Shader_kmium")
+
 [sub_resource type="Curve3D" id="32"]
 bake_interval = 1.67
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -0.19442, 0.0866818, -1.76063, 2.33724, -1.66999, -3.70093, -2.33724, 1.66999, 3.70093, -0.721755, 2.50279, -5.27716, 1.3031, -0.628219, -3.35566, -1.3031, 0.628219, 3.35566, -0.0607967, 0.469147, 0.81765, 0.0347347, -1.44808, 3.20064, -0.0347347, 1.44808, -3.20064, -2.29411, 5.39076, -1.00783, 0.0524731, 1.97994, -1.77644, -0.0524731, -1.97994, 1.77644, -0.539491, 1.55789, -3.2768, 0.282413, -0.803169, -1.42656, -0.282413, 0.803169, 1.42656, -2.56665, 1.06918, 2.91711, -3.40217, 2.63917, 1.69681, 3.40217, -2.63917, -1.69681, 0.500399, 4.02992, 2.0358),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -0.19442, 0.0866818, -1.76063, 2.33724, -1.66999, -3.70093, -2.33724, 1.66999, 3.70093, -0.721755, 2.50279, -5.27716, 1.3031, -0.628219, -3.35566, -1.3031, 0.628219, 3.35566, -0.0607967, 0.469147, 0.81765, 0.0347347, -1.44808, 3.20064, -0.0347347, 1.44808, -3.20064, -2.29411, 5.39076, -1.00783, 0.0524731, 1.97994, -1.77644, -0.0524731, -1.97994, 1.77644, -0.539491, 1.55789, -3.2768, 0.282413, -0.803169, -1.42656, -0.282413, 0.803169, 1.42656, -2.56665, 1.06918, 2.91711, -3.40217, 2.63917, 1.69681, 0, 0, 0, 0.500399, 4.02992, 2.0358),
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0)
 }
 point_count = 7
 
-[sub_resource type="Curve" id="53"]
-bake_resolution = 67
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -2.094, 0.0, 0, 0]
-point_count = 2
-
-[sub_resource type="CurveTexture" id="54"]
-texture_mode = 1
-curve = SubResource("53")
-
 [sub_resource type="ShaderMaterial" id="33"]
 render_priority = 0
 shader = ExtResource("8_c1yqp")
-shader_parameter/line_width = 0.095
-shader_parameter/glow_width = 1.09
+shader_parameter/line_width = 0.0
+shader_parameter/glow_width = 0.4
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
 shader_parameter/color = Color(0, 0.4, 1, 1)
 shader_parameter/glow_curve = 0.05
-shader_parameter/width_curve = SubResource("54")
 
 [sub_resource type="Curve3D" id="12"]
 bake_interval = 0.13
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.0133251, 0.052581, -0.315982, -0.000402212, -0.0114647, 0.125075, 0.000402212, 0.0114647, -0.125075, -0.0649302, 0.0867756, -0.676741, 0.0406693, -0.314836, 0.00211489, -0.0406693, 0.314836, -0.00211489, -0.0292743, 0.402122, -0.924479, 0, 0, 0, 0, 0, 0, 0.253769, 1.67101, -0.867928),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.0133251, 0.052581, -0.315982, -0.000402212, -0.0114647, 0.125075, 0, 0, 0, -0.0649302, 0.0867756, -0.676741, 0.0406693, -0.314836, 0.00211489, -0.0406693, 0.314836, -0.00211489, -0.0292743, 0.402122, -0.924479, 0, 0, 0, 0, 0, 0, 0.253769, 1.67101, -0.867928),
 "tilts": PackedFloat32Array(0, 0, 0, 0)
 }
 point_count = 4
@@ -219,7 +400,7 @@ curve = SubResource("Curve_3airw")
 [sub_resource type="ShaderMaterial" id="13"]
 render_priority = 0
 shader = ExtResource("4_12q1m")
-shader_parameter/line_width = 0.03
+shader_parameter/line_width = 0.045
 shader_parameter/tangent_facing = false
 shader_parameter/rounded = true
 shader_parameter/tube_normal = true
@@ -464,7 +645,7 @@ point_count = 2
 [sub_resource type="ShaderMaterial" id="52"]
 render_priority = 0
 shader = ExtResource("11")
-shader_parameter/twirl_aspect = 8.0
+shader_parameter/twirl_aspect = 0.5
 shader_parameter/extra_angle = 0.0
 shader_parameter/line_width = 0.025
 shader_parameter/link_radius = 0.15
@@ -478,7 +659,7 @@ shader_parameter/color = Color(0.1, 0.1, 0.1, 1)
 [node name="Node3D" type="Node3D"]
 
 [node name="wormspinner" type="Node3D" parent="."]
-transform = Transform3D(0.916642, 0, 0.399673, 0, 0.999999, 0, -0.39967, 0, 0.916649, -0.343072, 0.016, 3.531)
+transform = Transform3D(0.807497, 0, 0.58985, 0, 0.999999, 0, -0.589847, 0, 0.807502, -0.0242335, 0.016, 3.531)
 script = SubResource("1")
 mul = 1.59
 
@@ -500,15 +681,45 @@ mesh = SubResource("36")
 transform = Transform3D(-0.422618, 0, 0.906308, 0, 1, 0, -0.906308, 0, -0.422618, 1.0615, 0.0552319, 3.14501)
 curve = SubResource("6")
 script = ExtResource("3")
-curve_mode = 1
+iter_min_dist = 0.077
 material = SubResource("7")
 
 [node name="wireframe" type="Path3D" parent="."]
-transform = Transform3D(0.991497, 0, 0.130128, 0, 1, 0, -0.130128, 0, 0.991497, -0.815953, 0.041678, 3.27186)
+transform = Transform3D(0.991497, 0, 0.130128, 0, 1, 0, -0.130128, 0, 0.991497, -0.815953, 0.738032, 3.27186)
 curve = SubResource("8")
 script = ExtResource("3")
 iter_add_last_point = false
 material = SubResource("9")
+
+[node name="rope8" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964948, 0.2, 0.623746)
+curve = SubResource("10")
+script = ExtResource("3")
+curve_mode = 1
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_eq0cb")
+
+[node name="dashed" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964948, 0.2, -2.47625)
+curve = SubResource("10")
+script = ExtResource("3")
+curve_mode = 1
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_5byre")
+
+[node name="arrow" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964948, 0.2, -3.27625)
+curve = SubResource("10")
+script = ExtResource("3")
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_he72r")
+
+[node name="arrow2" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964948, 0.2, -4.07625)
+curve = SubResource("10")
+script = ExtResource("3")
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_tc703")
 
 [node name="rope" type="Path3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964948, 0.2, -0.277496)
@@ -517,14 +728,6 @@ script = ExtResource("3")
 curve_mode = 1
 iter_add_last_point = false
 material = SubResource("ShaderMaterial_qq25h")
-
-[node name="rope3" type="Path3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964948, 0.2, 0.123746)
-curve = SubResource("10")
-script = ExtResource("3")
-curve_mode = 1
-iter_add_last_point = false
-material = SubResource("ShaderMaterial_eq0cb")
 
 [node name="rope2" type="Path3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.151, -0.721456)
@@ -543,7 +746,7 @@ curve_mode = 1
 iter_add_last_point = false
 material = SubResource("ShaderMaterial_g5nd2")
 
-[node name="rope5" type="Path3D" parent="."]
+[node name="dp" type="Path3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.151, -1.62146)
 curve = SubResource("10")
 script = ExtResource("3")
@@ -558,6 +761,15 @@ script = ExtResource("3")
 curve_mode = 1
 iter_add_last_point = false
 material = SubResource("ShaderMaterial_be6ii")
+
+[node name="rope7" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0964947, 0.2, 0.709972)
+curve = SubResource("Curve3D_s2qhu")
+script = ExtResource("3")
+curve_mode = 1
+iter_min_dist = 0.035
+iter_add_last_point = false
+material = SubResource("ShaderMaterial_a854b")
 
 [node name="glow" type="Path3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.05833, 0.672881, 0.492809)
@@ -639,12 +851,11 @@ gravity = Vector3(0, 0, 0)
 [node name="3" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -0.667832, 0.744312, 0, -0.744312, -0.667832, 1.62286, 5.84881, -3.08045)
 light_color = Color(1, 0.94, 1, 1)
-light_angular_distance = 2.0
-shadow_enabled = true
+light_angular_distance = 1.27
 shadow_blur = 2.239
 directional_shadow_fade_start = 1.0
-directional_shadow_max_distance = 10.0
-directional_shadow_pancake_size = 7.4
+directional_shadow_max_distance = 20.0
+directional_shadow_pancake_size = 10.3
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(-0.932721, 0, 0.360599, 0, 1, 0, -0.360599, 0, -0.932721, 0.808431, 0.807191, -0.232107)
@@ -675,7 +886,6 @@ curve = SubResource("42")
 script = ExtResource("3")
 curve_mode = 1
 iter_add_last_point = false
-uv_size = 0.1
 material = SubResource("52")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]

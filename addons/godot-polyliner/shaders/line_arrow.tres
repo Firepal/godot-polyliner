@@ -1,0 +1,63 @@
+[gd_resource type="Shader" format=3 uid="uid://mddj3yvtsb0w"]
+
+[resource]
+code = "shader_type spatial;
+render_mode skip_vertex_transform, cull_disabled;
+render_mode unshaded;
+//render_mode blend_add;
+
+#include \"res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc\"
+
+float sdRoundedBox( in vec2 p, in vec2 b, in vec4 r ) {
+	r.xy = (p.x>0.0)?r.xy : r.zw;
+	r.x  = (p.y>0.0)?r.x  : r.y;
+	vec2 q = abs(p)-b+r.x;
+	return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
+}
+
+uniform float line_width = 0.1;
+
+varying float is_end;
+void vertex() {
+	VERTEX = (MODELVIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
+	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
+	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
+	
+	quick_line(line_width,false,false);
+}
+
+uniform vec4 color : source_color = vec4(vec3(1.0),1.0);
+
+float sdEquilateralTriangle( in vec2 p, in float r )
+{
+	const float k = sqrt(3.0);
+	p.x = abs(p.x) - r;
+	p.y = p.y + r/k;
+	if( p.x+k*p.y>0.0 ) p = vec2(p.x-k*p.y,-k*p.x-p.y)/2.0;
+	p.x -= clamp( p.x, -2.0*r, 0.0 );
+	return -length(p)*sign(p.y);
+}
+
+uniform float stem_size : hint_range(0.0, 0.9, 0.001) = 0.3;
+uniform float peak_aspect : hint_range(0.0, 1.0, 0.005) = 0.1;
+uniform bool double_sided = false;
+uniform bool flip_direction = false;
+
+void fragment(){
+	ALBEDO = color.rgb;
+	vec2 st = UV;
+	
+	if (UV.x > 0.5 && double_sided) { st.x = 1.0-st.x; }
+	if (flip_direction && !double_sided) { st.x = 1.0-st.x; }
+	st.x /= -UV2.x*line_width*peak_aspect;
+	st.x += 1.09;
+	float tri = sdEquilateralTriangle(st.yx*2.-1.,1.0);
+	float stem = abs(UV.y*2.-1.);
+	if (st.x > 0.28) { stem = 1.0; }
+	float combined = min(tri,stem-stem_size);
+	
+	ALBEDO = color.rgb;
+	
+	float aa = magic_aa(VERTEX,VIEWPORT_SIZE)/line_width*5.0;
+	ALPHA = smoothstep(0.0,-aa,combined);
+}"

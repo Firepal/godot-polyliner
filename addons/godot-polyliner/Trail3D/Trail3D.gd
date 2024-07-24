@@ -32,7 +32,7 @@ var damped_transform = Transform3D()
 
 func _ready():
 	damped_transform = global_transform
-	_mesh_instance.set_as_top_level(true)
+	_mesh_instance.set_as_top_level(false)
 	set_sampling_mode(sampling_mode)
 	set_max_points(max_points)
 	_set_material(material)

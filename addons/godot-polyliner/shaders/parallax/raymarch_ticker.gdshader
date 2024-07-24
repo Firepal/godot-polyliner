@@ -27,7 +27,7 @@ void vertex(){
 	NORMAL = mat3(MODELVIEW_MATRIX) * NORMAL;
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
-	quick_line(line_width,false)
+	quick_line(line_width,false,false)
 	
 	float line_length = UV2.x;
 	if (!stretch) { UV.x *= line_length; }

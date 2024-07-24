@@ -2,9 +2,6 @@ shader_type spatial;
 render_mode skip_vertex_transform;
 //render_mode unshaded;
 
-// \"tangent-facing\" code and \"rounded end\" code was removed
-// for this particular shader
-
 #include "res://addons/godot-polyliner/shaders/include/polyliner_inc.gdshaderinc"
 
 uniform float line_width = 0.05;
@@ -20,7 +17,7 @@ void vertex(){
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
 	float is_end;
-	quick_line(line_width,false)
+	quick_line(line_width,false,false)
 	
 	TBN = mat3(
 		BINORMAL,

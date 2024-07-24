@@ -25,7 +25,7 @@ void vertex(){
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
 	float is_end;
-	quick_line(line_width,false);
+	quick_line(line_width,false,false);
 	
 	
 	TBN = mat3(
@@ -111,7 +111,7 @@ vec3 getNormal( in vec3 p )
 }
 
 vec2 raymarch(vec3 ro, vec3 rd) {
-	float total_dist = -1.0;
+	float total_dist = -3.0;
 	float min_dist = 1e20;
 	
 	for(int i=0;i<128;i++){

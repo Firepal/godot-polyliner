@@ -19,7 +19,7 @@ void vertex(){
 	TANGENT = mat3(MODELVIEW_MATRIX) * TANGENT;
 	
 	float is_end;
-	quick_line(line_width,false)
+	quick_line(line_width,false,false)
 	
 	TBN = mat3(
 		BINORMAL,
